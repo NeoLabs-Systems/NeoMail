@@ -1,0 +1,29 @@
+{
+  "name": "MailNeo",
+  "short_name": "MailNeo",
+  "description": "Modern self-hosted email client with AI features",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#08080e",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Compose",
+      "short_name": "Compose",
+      "description": "Write a new email",
+      "url": "/app?action=compose",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    }
+  ]
+}
