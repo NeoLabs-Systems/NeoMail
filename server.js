@@ -41,6 +41,10 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 if (!process.env.SESSION_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('[FATAL] SESSION_SECRET must be set in production. Run: node scripts/setup.js');
+    process.exit(1);
+  }
   console.warn('[WARN] SESSION_SECRET not set – using insecure default. Run: node scripts/setup.js');
 }
 

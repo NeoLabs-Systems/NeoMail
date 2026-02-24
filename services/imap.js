@@ -48,7 +48,7 @@ function buildClient(account) {
     secure: account.imap_secure === 1,
     auth: { user: account.email, pass: password },
     logger: false,
-    tls: { rejectUnauthorized: false }
+    tls: { rejectUnauthorized: process.env.IMAP_TLS_REJECT_UNAUTHORIZED !== 'false' }
   });
 }
 

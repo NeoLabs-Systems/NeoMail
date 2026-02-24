@@ -8,6 +8,12 @@ const { syncAccount, listFolders, startIdleWatcher, stopIdleWatcher } = require(
 
 const router = express.Router();
 
+const _syncCooldowns = new Map();
+setInterval(() => {
+  const cutoff = Date.now() - 60 * 1000;
+  for (const [k, v] of _syncCooldowns) { if (v < cutoff) _syncCooldowns.delete(k); }
+}, 2 * 60 * 1000).unref();
+
 function safeAccount(row) {
   if (!row) return null;
   const { encrypted_pass, ...rest } = row;
@@ -136,6 +142,11 @@ router.delete('/:id', (req, res) => {
 router.post('/:id/sync', async (req, res) => {
   const account = db.prepare('SELECT * FROM accounts WHERE id = ? AND user_id = ?').get(req.params.id, req.session.userId);
   if (!account) return res.status(404).json({ error: 'Not found' });
+  const lastSync = _syncCooldowns.get(account.id) || 0;
+  if (Date.now() - lastSync < 60 * 1000) {
+    return res.status(429).json({ error: 'Sync cooldown: please wait at least 1 minute between manual syncs' });
+  }
+  _syncCooldowns.set(account.id, Date.now());
   try {
     const count = await syncAccount(account);
     res.json({ ok: true, newEmails: count });

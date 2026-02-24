@@ -14,7 +14,12 @@ function isValidUnsubscribeUrl(url) {
     const h = u.hostname.toLowerCase();
     // Block IPv4 private/loopback
     if (['localhost', '127.0.0.1', '0.0.0.0', '::1'].includes(h)) return false;
-    if (h.startsWith('192.168.') || h.startsWith('10.') || h.startsWith('172.')) return false;
+    if (h.startsWith('10.')) return false;
+    if (h.startsWith('192.168.')) return false;
+    // RFC 1918: 172.16.0.0/12 (172.16.x.x – 172.31.x.x)
+    if (/^172\.(1[6-9]|2\d|3[01])\./.test(h)) return false;
+    // Link-local (169.254.x.x) – covers AWS/GCP/Azure instance metadata endpoint
+    if (h.startsWith('169.254.')) return false;
     // Block IPv6 loopback, link-local, unique-local, and IPv4-mapped
     if (h === '[::1]') return false;
     if (h.startsWith('[fe80:') || h.startsWith('[fc') || h.startsWith('[fd')) return false;
@@ -274,6 +279,11 @@ router.get('/:id/attachment/:attId', (req, res) => {
 
   const att = db.prepare('SELECT * FROM email_attachments WHERE id = ? AND email_id = ?').get(req.params.attId, email.id);
   if (!att) return res.status(404).json({ error: 'Attachment not found' });
+
+  const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024; // 50 MB
+  if (att.size > MAX_ATTACHMENT_BYTES) {
+    return res.status(413).json({ error: 'Attachment too large to serve' });
+  }
 
   // Sanitize filename to prevent header injection (strip " and control chars)
   const safeFilename = (att.filename || 'attachment').replace(/["\r\n\x00-\x1f]/g, '_');
