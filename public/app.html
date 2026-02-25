@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>MailNeo</title>
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MailNeo">
+  <meta name="theme-color" content="#0f0f17" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/icon.svg">
+  <link rel="apple-touch-icon" href="/icon.svg">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+  <!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+  <!-- Mobile sidebar overlay backdrop -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <img src="/icon.svg" class="logo-icon" alt="MailNeo" style="background: none; padding: 0;">
+        <span class="logo-text">MailNeo</span>
+      </div>
+      <button class="btn-compose" id="btn-compose" title="Compose">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Compose
+      </button>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebar-nav">
+      <div class="nav-section">
+        <a class="nav-item active" data-folder="INBOX">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3H10l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+          Inbox <span class="badge" id="badge-inbox"></span>
+        </a>
+        <a class="nav-item" data-folder="starred">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          Starred <span class="badge" id="badge-starred"></span>
+        </a>
+        <a class="nav-item" data-folder="awaiting">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Awaiting Reply <span class="badge" id="badge-awaiting"></span>
+        </a>
+        <a class="nav-item" data-folder="sent">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Sent
+        </a>
+        <a class="nav-item" data-folder="archive">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+          Archive
+        </a>
+        <a class="nav-item" data-folder="trash">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+          Trash
+        </a>
+        <a class="nav-item" data-folder="all">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          All Mail
+        </a>
+        <a class="nav-item" data-folder="snoozed">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/><path d="M9 1h6M12 1v2"/></svg>
+          Snoozed <span class="badge" id="badge-snoozed"></span>
+        </a>
+        <a class="nav-item" data-folder="scheduled">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Scheduled <span class="badge" id="badge-scheduled"></span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <button class="nav-item" id="chat-sidebar-btn" style="width:100%;text-align:left;border:none;background:none;font-family:inherit" aria-expanded="false">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Ask AI
+        </button>
+
+      <div class="nav-section" id="labels-nav">
+        <div class="nav-section-title">Labels</div>
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="nav-section" id="accounts-nav">
+        <div class="nav-section-title">Accounts</div>
+        <!-- Populated by JS -->
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="sidebar-footer-btn" id="btn-add-account">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Account
+      </button>
+      <button class="sidebar-footer-btn" id="btn-settings">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Settings
+      </button>
+      <button class="sidebar-footer-btn" id="btn-logout">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- ═══════════════════ EMAIL LIST ═══════════════════ -->
+  <main class="content">
+    <div class="list-pane" id="list-pane">
+      <!-- Toolbar -->
+      <div class="list-toolbar">
+        <div class="toolbar-left">
+          <!-- Hamburger: only visible on mobile -->
+          <button class="tb-btn hamburger-btn" id="btn-hamburger" title="Menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <label class="check-all-wrap">
+            <input type="checkbox" id="check-all">
+            <span class="custom-check"></span>
+          </label>
+          <span class="sel-count" id="sel-count" style="display:none"></span>
+          <div class="bulk-actions" id="bulk-actions" style="display:none">
+            <button class="tb-btn" data-bulk="read" title="Mark read">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+            <button class="tb-btn" data-bulk="unread" title="Mark unread">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+            <button class="tb-btn" data-bulk="archive" title="Archive">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+            </button>
+            <button class="tb-btn" data-bulk="trash" title="Trash">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+            </button>
+            <div class="tb-sep"></div>
+            <button class="tb-btn ai-btn" id="btn-bulk-label" title="AI Label selected">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 0v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+              AI Label
+            </button>
+            <button class="tb-btn ai-btn" id="btn-bulk-unsubscribe" title="Mass Unsubscribe">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+              Unsubscribe
+            </button>
+          </div>
+          <!-- Refresh: only visible on mobile -->
+          <button class="tb-btn mobile-refresh-btn" id="btn-mobile-refresh" title="Refresh">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+          </button>
+        </div>
+        <div class="toolbar-right">
+          <div class="search-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="search-input" placeholder="Search… (from: subject: after: has:attachment)">
+          </div>
+          <button class="tb-btn thread-toggle-btn" id="btn-thread-toggle" title="Thread view">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </button>
+          <button class="tb-btn" id="btn-sync" title="Sync all">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Folder header -->
+      <div class="folder-header">
+        <h2 id="folder-title">Inbox</h2>
+        <span id="folder-count" class="folder-count"></span>
+      </div>
+
+      <!-- Pull-to-refresh indicator -->
+      <div class="ptr-indicator" id="ptr-indicator">
+        <svg class="ptr-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      </div>
+
+      <!-- Email list -->
+      <div class="email-list" id="email-list">
+        <div class="loading-state" id="list-loading">
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+        </div>
+      </div>
+
+      <!-- Load more -->
+      <button class="load-more" id="load-more" style="display:none">Load more</button>
+    </div>
+
+    <!-- ═══════════════════ EMAIL VIEW ═══════════════════ -->
+    <div class="view-pane" id="view-pane">
+      <div class="view-empty" id="view-empty">
+        <div class="view-empty-icon">✉</div>
+        <p>Select an email to read</p>
+      </div>
+
+      <div id="email-view" style="display:none">
+        <div class="view-header">
+          <button class="icon-btn back-btn" id="btn-back" title="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <div class="view-actions">
+            <button class="icon-btn" id="btn-view-reply" title="Reply [r]">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 00-4-4H4"/></svg>
+            </button>
+            <button class="icon-btn" id="btn-view-reply-all" title="Reply All">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7 17 2 12 7 7"/><polyline points="13 17 8 12 13 7"/><path d="M22 18v-2a4 4 0 00-4-4H8"/></svg>
+            </button>
+            <button class="icon-btn" id="btn-view-forward" title="Forward">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 17 20 12 15 7"/><path d="M4 18v-2a4 4 0 014-4h12"/></svg>
+            </button>
+            <button class="icon-btn" id="btn-view-star" title="Star [s]">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </button>
+            <button class="icon-btn" id="btn-view-archive" title="Archive [e]">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+            </button>
+            <button class="icon-btn" id="btn-view-await" title="Track awaiting reply">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </button>
+            <div class="move-btn-wrap">
+              <button class="icon-btn" id="btn-view-move" title="Move to folder">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+              </button>
+              <div class="folder-picker" id="folder-picker">
+                <input class="folder-picker-search" id="folder-picker-search" placeholder="Filter folders…">
+                <div id="folder-picker-list"></div>
+              </div>
+            </div>
+            <button class="icon-btn" id="btn-view-spam" title="Mark as Spam">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            </button>
+            <button class="icon-btn" id="btn-view-trash" title="Trash">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+            </button>
+            <button class="icon-btn" id="btn-view-snooze" title="Snooze">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><polyline points="12 9 12 13 15 15"/><path d="M5 3L3 5M21 5l-2-2"/></svg>
+            </button>
+            <button class="icon-btn" id="btn-view-unsub" title="Unsubscribe" style="display:none">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+            <div class="tb-sep"></div>
+            <button class="icon-btn ai-icon" id="btn-view-summarize" title="AI Summary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            </button>
+            <button class="icon-btn ai-icon" id="btn-view-label" title="AI Label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="email-content" id="email-content">
+          <div class="email-meta">
+            <h1 id="view-subject"></h1>
+            <div class="email-from">
+              <div class="avatar" id="view-avatar"></div>
+              <div class="from-details">
+                <span class="from-name" id="view-from-name"></span>
+                <button class="from-email-toggle" id="view-from-email-btn" title="Show details">
+                  <span class="from-email" id="view-from-email"></span>
+                  <svg id="view-details-chevron" class="details-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="email-header-details" id="view-header-details">
+                  <div class="edr"><span class="edr-label">From</span><span class="edr-val" id="edr-from"></span></div>
+                  <div class="edr"><span class="edr-label">To</span><span class="edr-val" id="edr-to"></span></div>
+                  <div class="edr" id="edr-cc-row" style="display:none"><span class="edr-label">Cc</span><span class="edr-val" id="edr-cc"></span></div>
+                  <div class="edr"><span class="edr-label">Account</span><span class="edr-val" id="edr-account"></span></div>
+                  <div class="edr"><span class="edr-label">Date</span><span class="edr-val" id="edr-date-full"></span></div>
+                </div>
+              </div>
+              <div class="email-date" id="view-date"></div>
+            </div>
+            <div class="tag-row" id="view-tags"></div>
+
+            <!-- AI Summary box -->
+            <div class="ai-summary-box" id="ai-summary-box" style="display:none">
+              <div class="ai-summary-label">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/><path d="M12 6v6l4 2"/></svg>
+                AI Summary
+              </div>
+              <p id="ai-summary-text"></p>
+            </div>
+          </div>
+          <!-- Unsubscribe confirmation bar -->
+          <div id="unsub-confirm-bar" style="display:none;align-items:center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            <span>Unsubscribe from this sender?</span>
+            <button class="btn-unsub-yes" id="btn-unsub-yes">Unsubscribe</button>
+            <button class="btn-unsub-no"  id="btn-unsub-no">Cancel</button>
+          </div>
+          <div class="email-body-wrap">
+            <iframe id="email-iframe" sandbox="allow-same-origin" title="Email content"></iframe>
+          </div>
+          <div class="attachments-row" id="attachments-row" style="display:none">
+            <div class="attach-title">Attachments</div>
+            <div id="attachments-list" class="attach-list"></div>
+          </div>
+          <!-- Smart replies section (populated by JS) -->
+          <div class="smart-replies-row" id="smart-replies-row" style="display:none">
+            <button class="smart-replies-trigger" id="btn-smart-replies">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              Suggest replies…
+            </button>
+            <div class="smart-replies-chips" id="smart-replies-chips"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ═══════════════════ COMPOSE MODAL ═══════════════════ -->
+  <div class="compose-modal" id="compose-modal" style="display:none">
+    <div class="compose-header">
+      <span id="compose-title">New Message</span>
+      <div class="compose-header-actions">
+        <button class="icon-btn" id="compose-ai-btn" title="AI Compose">✦ AI</button>
+        <button class="icon-btn" id="compose-minimize">—</button>
+        <button class="icon-btn" id="compose-close">✕</button>
+      </div>
+    </div>
+    <div class="compose-fields">
+      <div class="compose-field">
+        <span class="compose-field-label">From</span>
+        <select id="compose-from"></select>
+      </div>
+      <div class="compose-field">
+        <span class="compose-field-label">To</span>
+        <input type="text" id="compose-to" placeholder="Recipients…" autocomplete="off">
+      </div>
+      <div class="compose-field" id="compose-cc-row">
+        <span class="compose-field-label">Cc</span>
+        <input type="text" id="compose-cc" placeholder="Carbon copy…" autocomplete="off">
+      </div>
+      <div class="compose-field" id="compose-bcc-row" style="display:none">
+        <span class="compose-field-label">Bcc</span>
+        <input type="text" id="compose-bcc" placeholder="Blind copy…" autocomplete="off">
+      </div>
+      <div class="compose-field compose-subject-field">
+        <input type="text" id="compose-subject" placeholder="Subject">
+      </div>
+    </div>
+    <div class="compose-toolbar">
+      <button class="compose-tb-btn" data-cmd="bold" title="Bold"><b>B</b></button>
+      <button class="compose-tb-btn" data-cmd="italic" title="Italic"><i>I</i></button>
+      <button class="compose-tb-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+      <div class="tb-sep"></div>
+      <button class="compose-tb-btn" data-cmd="insertUnorderedList" title="Bullet list">≡</button>
+      <button class="compose-tb-btn" data-cmd="insertOrderedList" title="Numbered list">⒈</button>
+      <div class="tb-sep"></div>
+      <button class="compose-tb-btn" data-cmd="createLink" title="Insert link">🔗</button>      <div class="tb-sep"></div>
+      <button class="compose-tb-btn" id="btn-toggle-bcc" title="Toggle Bcc" style="font-size:11px;width:auto;padding:0 8px">Bcc</button>    </div>
+    <div id="compose-body" class="compose-body" contenteditable="true" data-placeholder="Write your message…"></div>
+
+    <!-- AI Compose panel -->
+    <div class="ai-compose-panel" id="ai-compose-panel" style="display:none">
+      <textarea id="ai-instruction" placeholder="Describe what you want to write… (e.g. 'Professional follow-up for the meeting yesterday')"></textarea>
+      <button class="btn-ai-generate" id="btn-ai-generate">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>
+        Generate Draft
+      </button>
+    </div>
+
+    <div class="compose-footer">
+      <button class="btn-send" id="btn-send">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send
+      </button>
+      <button class="btn-send-later" id="btn-send-later" title="Schedule send">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Later
+      </button>
+      <button class="icon-btn" id="btn-toggle-sig" title="Disable signature" style="font-size:11px;padding:4px 8px;letter-spacing:.02em">Sig ✓</button>
+      <span id="send-status" class="send-status"></span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ SETTINGS MODAL ═══════════════════ -->
+  <div class="modal-overlay" id="settings-overlay" style="display:none">
+    <div class="settings-modal">
+      <div class="settings-header">
+        <h2>Settings</h2>
+        <button class="icon-btn" id="settings-close">✕</button>
+      </div>
+      <div class="settings-body">
+        <div class="settings-tabs">
+          <button class="stab active" data-stab="accounts">Email Accounts</button>
+          <button class="stab" data-stab="labels">Labels</button>
+          <button class="stab" data-stab="cursor-rules">Cursor Rules</button>
+          <button class="stab" data-stab="ai-config">AI Config</button>
+          <button class="stab" data-stab="general">General</button>
+          <button class="stab" data-stab="notifications">Notifications</button>
+          <button class="stab" data-stab="security">Security</button>
+          <button class="stab" data-stab="mcp">MCP / API</button>
+        </div>
+        <div class="settings-content" id="settings-content">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ ACCOUNT SETUP MODAL ═══════════════════ -->
+  <div class="modal-overlay" id="account-modal-overlay" style="display:none">
+    <div class="modal-card" id="account-modal">
+      <div class="modal-header">
+        <h3 id="account-modal-title">Add Email Account</h3>
+        <button class="icon-btn" id="account-modal-close">✕</button>
+      </div>
+      <form id="account-form" class="modal-form">
+        <input type="hidden" id="account-id-field">
+        <div class="form2-group">
+          <label>Account Name / Label</label>
+          <input type="text" id="acc-label" placeholder="My Gmail">
+        </div>
+        <div class="form2-group">
+          <label>Email Address</label>
+          <input type="email" id="acc-email" placeholder="you@gmail.com" required>
+        </div>
+        <div class="form2-group">
+          <label>Password / App Password</label>
+          <input type="password" id="acc-password" placeholder="••••••••">
+        </div>
+        <div class="form2-row">
+          <div class="form2-group">
+            <label>IMAP Host</label>
+            <input type="text" id="acc-imap-host" placeholder="imap.gmail.com" required>
+          </div>
+          <div class="form2-group form2-small">
+            <label>Port</label>
+            <input type="number" id="acc-imap-port" value="993">
+          </div>
+          <div class="form2-group form2-tiny">
+            <label>SSL</label>
+            <label class="toggle"><input type="checkbox" id="acc-imap-secure" checked><span class="toggle-track"></span></label>
+          </div>
+        </div>
+        <div class="form2-row">
+          <div class="form2-group">
+            <label>SMTP Host</label>
+            <input type="text" id="acc-smtp-host" placeholder="smtp.gmail.com" required>
+          </div>
+          <div class="form2-group form2-small">
+            <label>Port</label>
+            <input type="number" id="acc-smtp-port" value="587">
+          </div>
+          <div class="form2-group form2-tiny">
+            <label>SSL</label>
+            <label class="toggle"><input type="checkbox" id="acc-smtp-secure"><span class="toggle-track"></span></label>
+          </div>
+        </div>
+        <div class="form2-check">
+          <label><input type="checkbox" id="acc-default"> Set as default account</label>
+        </div>
+        <div class="quick-presets">
+          <span>Quick setup:</span>
+          <button type="button" class="preset-btn" data-preset="gmail">Gmail</button>
+          <button type="button" class="preset-btn" data-preset="outlook">Outlook</button>
+          <button type="button" class="preset-btn" data-preset="yahoo">Yahoo</button>
+          <button type="button" class="preset-btn" data-preset="icloud">iCloud</button>
+        </div>
+        <div id="account-form-alert" class="form-alert" style="display:none"></div>
+        <div class="modal-form-footer">
+          <button type="button" class="btn-verify" id="btn-verify-account">Verify SMTP</button>
+          <button type="submit" class="btn-save">Save Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- File Preview Modal -->
+  <div id="preview-overlay" class="preview-overlay" style="display:none"></div>
+
+  <!-- AI Chat Panel (right-side drawer) -->
+  <div class="chat-backdrop" id="chat-backdrop"></div>
+  <div class="chat-panel" id="chat-panel" role="dialog" aria-label="AI email assistant">
+    <div class="chat-header">
+      <div class="chat-header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+      </div>
+      <div style="flex:1">
+        <div class="chat-header-title">MailNeo AI</div>
+        <div class="chat-header-sub">Searches all your emails</div>
+      </div>
+      <div class="chat-header-actions">
+        <button class="chat-hdr-btn" id="chat-clear" title="Clear conversation">&#x1F5D1;</button>
+        <button class="chat-hdr-btn" id="chat-close" title="Close">&#x2715;</button>
+      </div>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-row">
+      <textarea id="chat-input" rows="1" placeholder="Ask about your emails… (Enter to send)"></textarea>
+      <button id="chat-send" title="Send">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- External link confirmation -->
+  <div id="link-confirm-overlay" style="display:none">
+    <div id="link-confirm-dialog">
+      <div id="link-confirm-header">
+        <span id="link-confirm-icon">🔗</span>
+        <span>Open external link?</span>
+      </div>
+      <div id="link-confirm-url-wrap">
+        <span id="link-confirm-url"></span>
+      </div>
+      <div id="link-confirm-actions">
+        <button class="btn-small" id="link-confirm-cancel">Cancel</button>
+        <button class="btn-small primary" id="link-confirm-open">Open in new tab</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Undo send toast -->
+  <div id="undo-send-bar" style="display:none"></div>
+
+  <!-- Snooze picker modal -->
+  <div id="snooze-overlay" style="display:none">
+    <div id="snooze-dialog">
+      <div class="snooze-header">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><polyline points="12 9 12 13 15 15"/><path d="M5 3L3 5M21 5l-2-2"/></svg>
+        Snooze until…
+      </div>
+      <div class="snooze-options" id="snooze-options"></div>
+      <div class="snooze-custom">
+        <input type="datetime-local" id="snooze-custom-dt">
+        <button class="btn-small primary" id="btn-snooze-custom">Snooze</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule send modal -->
+  <div id="schedule-overlay" style="display:none">
+    <div id="schedule-dialog">
+      <div class="snooze-header">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Schedule send
+      </div>
+      <div style="font-size:12.5px;color:var(--text-3);margin-bottom:12px">Choose when to send this email.</div>
+      <input type="datetime-local" id="schedule-dt" style="width:100%;margin-bottom:14px">
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn-small" id="btn-schedule-cancel">Cancel</button>
+        <button class="btn-small primary" id="btn-schedule-confirm">Schedule</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast" style="display:none"></div>
+
+  <!-- Scripts -->
+  <script src="/js/app.js"></script>
+  <script src="/js/compose.js"></script>
+  <script src="/js/settings.js"></script>
+  <script src="/js/ai-features.js"></script>
+  <script src="/js/preview.js"></script>
+  <script src="/js/calendar.js"></script>
+  <script src="/js/chat.js"></script>
+</body>
+</html>

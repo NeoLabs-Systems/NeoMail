@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MailNeo – Authorize Access</title>
+  <meta name="theme-color" content="#0a0a0f" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <link rel="stylesheet" href="/css/login.css">
+  <style>
+    .scope-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 4px 4px 4px 0;
+    }
+    .scope-read  { background: rgba(34,197,94,.15);  color: #22c55e; border: 1px solid rgba(34,197,94,.3); }
+    .scope-write { background: rgba(239,68,68,.15);  color: #ef4444; border: 1px solid rgba(239,68,68,.3); }
+    .scope-list  { margin: 14px 0; }
+    .client-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .auth-title  { opacity: .65; font-size: 14px; margin-bottom: 20px; }
+    .perm-row    { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+    .perm-row:last-child { border-bottom: none; }
+    .perm-ico    { font-size: 18px; margin-top: 1px; }
+    .perm-desc   { font-size: 14px; }
+    .perm-desc strong { display: block; margin-bottom: 2px; }
+    .perm-desc small  { opacity: .6; font-size: 12px; }
+    .btn-row     { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-deny    { flex: 1; background: transparent; border: 1px solid rgba(255,255,255,.15); color: inherit; padding: 12px; border-radius: 10px; cursor: pointer; font-size: 15px; }
+    .btn-deny:hover { background: rgba(255,255,255,.06); }
+    .divider     { height: 1px; background: rgba(255,255,255,.08); margin: 18px 0; }
+    .warning-box { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #fca5a5; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-card" style="max-width:440px">
+      <div class="logo" style="margin-bottom:8px">
+        <img src="/icon.svg" class="logo-icon" alt="MailNeo" style="background:none;padding:0">
+        <span class="logo-text">MailNeo</span>
+      </div>
+
+      <div id="auth-content">
+        <div class="client-name" id="client-name">…</div>
+        <div class="auth-title">is requesting access to your MailNeo account</div>
+
+        <div class="scope-list" id="scope-list"></div>
+
+        <div class="divider"></div>
+
+        <div id="perm-details"></div>
+
+        <div class="warning-box" id="write-warning" style="display:none">
+          ⚠️ This app will be able to <strong>send emails on your behalf</strong>.
+          Only grant write access to apps you fully trust.
+        </div>
+
+        <form method="POST" action="/oauth/authorize" id="consent-form">
+          <input type="hidden" name="client_id"             id="f-client_id">
+          <input type="hidden" name="client_name"           id="f-client_name">
+          <input type="hidden" name="redirect_uri"          id="f-redirect_uri">
+          <input type="hidden" name="scope"                 id="f-scope">
+          <input type="hidden" name="state"                 id="f-state">
+          <input type="hidden" name="code_challenge"        id="f-code_challenge">
+          <input type="hidden" name="code_challenge_method" id="f-code_challenge_method">
+          <input type="hidden" name="action"                id="f-action" value="approve">
+
+          <div class="btn-row">
+            <button type="button" class="btn-deny" onclick="deny()">Deny</button>
+            <button type="submit" class="btn-primary" style="flex:2" id="approve-btn">
+              Allow Access
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/mcp-authorize.js"></script>
+</body>
+</html>

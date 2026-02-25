@@ -1,0 +1,26 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="primary" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#818CF8"/>
+      <stop offset="1" stop-color="#4F46E5"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect x="32" y="32" width="448" height="448" rx="128" fill="#1E1E2E"/>
+  
+  <!-- Envelope Body -->
+  <rect x="112" y="160" width="288" height="192" rx="24" fill="url(#primary)" filter="url(#glow)"/>
+  
+  <!-- Envelope Flap (Triangle cut) -->
+  <path d="M112 184 L244 282 C251 287 261 287 268 282 L400 184" stroke="#1E1E2E" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- AI Spark (Neo element) -->
+  <circle cx="380" cy="140" r="16" fill="#F472B6">
+    <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite"/>
+  </circle>
+</svg>
