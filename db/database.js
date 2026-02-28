@@ -153,6 +153,8 @@ for (const migration of [
   `ALTER TABLE emails ADD COLUMN is_spam        INTEGER NOT NULL DEFAULT 0`,
   `ALTER TABLE emails ADD COLUMN thread_key     TEXT`,
   `ALTER TABLE emails ADD COLUMN snoozed_until  INTEGER`,
+  `ALTER TABLE users ADD COLUMN totp_secret      TEXT`,
+  `ALTER TABLE users ADD COLUMN totp_enabled     INTEGER NOT NULL DEFAULT 0`,
   `CREATE INDEX IF NOT EXISTS idx_emails_thread    ON emails(account_id, thread_key)`,
   `CREATE INDEX IF NOT EXISTS idx_emails_snoozed   ON emails(snoozed_until)`,
   `CREATE TABLE IF NOT EXISTS scheduled_emails (
@@ -206,11 +208,11 @@ db.exec(`
 
 try {
   const indexed = db.prepare('SELECT count(*) AS c FROM email_fts').get().c;
-  const total   = db.prepare('SELECT count(*) AS c FROM emails').get().c;
+  const total = db.prepare('SELECT count(*) AS c FROM emails').get().c;
   if (total > 0 && indexed < total) {
     db.exec(`INSERT INTO email_fts(email_fts) VALUES ('rebuild')`);
   }
-} catch (_) {}
+} catch (_) { }
 
 // ── MCP / OAuth migrations ──────────────────────────────────────────────────
 for (const migration of [
@@ -253,12 +255,12 @@ for (const migration of [
 
 function insertDefaultLabels(userId) {
   const defaults = [
-    { name: 'Work',       color: '#3b82f6', is_system: 0 },
-    { name: 'Personal',   color: '#22c55e', is_system: 0 },
-    { name: 'Finance',    color: '#f59e0b', is_system: 0 },
+    { name: 'Work', color: '#3b82f6', is_system: 0 },
+    { name: 'Personal', color: '#22c55e', is_system: 0 },
+    { name: 'Finance', color: '#f59e0b', is_system: 0 },
     { name: 'Newsletter', color: '#8b5cf6', is_system: 0 },
-    { name: 'Travel',     color: '#06b6d4', is_system: 0 },
-    { name: 'Spam',       color: '#ef4444', is_system: 1 },
+    { name: 'Travel', color: '#06b6d4', is_system: 0 },
+    { name: 'Spam', color: '#ef4444', is_system: 1 },
   ];
   const stmt = db.prepare(
     `INSERT OR IGNORE INTO labels (user_id, name, color, is_system) VALUES (?, ?, ?, ?)`

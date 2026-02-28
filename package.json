@@ -1,7 +1,7 @@
 {
   "name": "neomail",
   "version": "1.0.0",
-  "description": "NeoMail \u2013 A beautiful, AI-powered self-hosted email client",
+  "description": "NeoMail – A beautiful, AI-powered self-hosted email client",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -24,6 +24,8 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.14",
     "openai": "^4.52.7",
+    "qrcode": "^1.5.4",
+    "speakeasy": "^2.0.0",
     "uuid": "^10.0.0"
   },
   "devDependencies": {

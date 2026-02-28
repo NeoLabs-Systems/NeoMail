@@ -2,6 +2,8 @@
 
 const express = require('express');
 const bcrypt = require('bcrypt');
+const speakeasy = require('speakeasy');
+const qrcode = require('qrcode');
 const { db, insertDefaultLabels } = require('../db/database');
 
 const router = express.Router();
@@ -39,8 +41,8 @@ router.post('/register', async (req, res) => {
   if (!username || !email || !password) {
     return res.status(400).json({ error: 'All fields required' });
   }
-  if (String(username).length > 50)  return res.status(400).json({ error: 'Username too long (max 50)' });
-  if (String(email).length > 254)    return res.status(400).json({ error: 'Email too long (max 254)' });
+  if (String(username).length > 50) return res.status(400).json({ error: 'Username too long (max 50)' });
+  if (String(email).length > 254) return res.status(400).json({ error: 'Email too long (max 254)' });
   if (String(password).length > 1000) return res.status(400).json({ error: 'Password too long (max 1000)' });
   if (password.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters' });
@@ -82,7 +84,7 @@ router.post('/login', async (req, res) => {
   if (!username || !password) {
     return res.status(400).json({ error: 'All fields required' });
   }
-  if (String(username).length > 254)  return res.status(400).json({ error: 'Credentials too long' });
+  if (String(username).length > 254) return res.status(400).json({ error: 'Credentials too long' });
   if (String(password).length > 1000) return res.status(400).json({ error: 'Credentials too long' });
   try {
     const user = db.prepare(
@@ -93,6 +95,21 @@ router.post('/login', async (req, res) => {
 
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
+
+    // 2FA Check
+    if (user.totp_enabled) {
+      const totpToken = typeof req.body.totp === 'string' ? req.body.totp.replace(/\s+/g, '') : '';
+      if (!totpToken) return res.status(403).json({ "2fa_required": true });
+
+      const verified = speakeasy.totp.verify({
+        secret: user.totp_secret,
+        encoding: 'base32',
+        token: totpToken,
+        window: 1
+      });
+
+      if (!verified) return res.status(401).json({ error: 'Invalid 2FA code' });
+    }
 
     db.prepare('UPDATE users SET last_login = ? WHERE id = ?').run(Math.floor(Date.now() / 1000), user.id);
 
@@ -124,7 +141,7 @@ router.post('/change-password', async (req, res) => {
   if (!current_password || !new_password) {
     return res.status(400).json({ error: 'Both fields required' });
   }
-  if (String(new_password).length < 8)    return res.status(400).json({ error: 'New password must be at least 8 characters' });
+  if (String(new_password).length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters' });
   if (String(new_password).length > 1000) return res.status(400).json({ error: 'New password too long' });
   try {
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.session.userId);
@@ -141,8 +158,84 @@ router.post('/change-password', async (req, res) => {
 
 router.get('/me', (req, res) => {
   if (!req.session?.userId) return res.status(401).json({ error: 'Not logged in' });
-  const user = db.prepare('SELECT id, username, email, created_at FROM users WHERE id = ?').get(req.session.userId);
-  res.json(user || {});
+  const user = db.prepare('SELECT id, username, email, created_at, totp_enabled FROM users WHERE id = ?').get(req.session.userId);
+  res.json({
+    ...user,
+    totp_enabled: !!user.totp_enabled
+  });
+});
+
+/* ── 2FA endpoints ───────────────────────────────────── */
+
+router.get('/2fa/generate', async (req, res) => {
+  if (!req.session?.userId) return res.status(401).json({ error: 'Unauthorized' });
+  const user = db.prepare('SELECT email, totp_enabled FROM users WHERE id = ?').get(req.session.userId);
+  if (user.totp_enabled) return res.status(400).json({ error: '2FA is already enabled' });
+
+  const secret = speakeasy.generateSecret({
+    name: `MailNeo (${user.email})`
+  });
+
+  db.prepare('UPDATE users SET totp_secret = ? WHERE id = ?').run(secret.base32, req.session.userId);
+
+  try {
+    const dataUrl = await qrcode.toDataURL(secret.otpauth_url);
+    res.json({ secret: secret.base32, qrcode: dataUrl });
+  } catch (err) {
+    res.status(500).json({ error: 'Error generating QR code' });
+  }
+});
+
+router.post('/2fa/verify', (req, res) => {
+  if (!req.session?.userId) return res.status(401).json({ error: 'Unauthorized' });
+  const token = typeof req.body.token === 'string' ? req.body.token.replace(/\s+/g, '') : '';
+  if (!token) return res.status(400).json({ error: 'Token is required' });
+
+  const user = db.prepare('SELECT totp_secret, totp_enabled FROM users WHERE id = ?').get(req.session.userId);
+  if (user.totp_enabled) return res.status(400).json({ error: '2FA is already enabled' });
+  if (!user.totp_secret) return res.status(400).json({ error: '2FA not generated yet' });
+
+  const verified = speakeasy.totp.verify({
+    secret: user.totp_secret,
+    encoding: 'base32',
+    token: token,
+    window: 1
+  });
+
+  if (verified) {
+    db.prepare('UPDATE users SET totp_enabled = 1 WHERE id = ?').run(req.session.userId);
+    res.json({ ok: true, message: '2FA enabled successfully' });
+  } else {
+    res.status(400).json({ error: 'Invalid token' });
+  }
+});
+
+router.post('/2fa/disable', async (req, res) => {
+  if (!req.session?.userId) return res.status(401).json({ error: 'Unauthorized' });
+  const password = typeof req.body.password === 'string' ? req.body.password : '';
+  const token = typeof req.body.token === 'string' ? req.body.token.replace(/\s+/g, '') : '';
+
+  if (!password || !token) return res.status(400).json({ error: 'Password and token are required' });
+
+  const user = db.prepare('SELECT password, totp_secret, totp_enabled FROM users WHERE id = ?').get(req.session.userId);
+  if (!user.totp_enabled) return res.status(400).json({ error: '2FA is not enabled' });
+
+  const valid = await bcrypt.compare(password, user.password);
+  if (!valid) return res.status(401).json({ error: 'Invalid password' });
+
+  const verified = speakeasy.totp.verify({
+    secret: user.totp_secret,
+    encoding: 'base32',
+    token: token,
+    window: 1
+  });
+
+  if (verified) {
+    db.prepare('UPDATE users SET totp_enabled = 0, totp_secret = NULL WHERE id = ?').run(req.session.userId);
+    res.json({ ok: true, message: '2FA disabled successfully' });
+  } else {
+    res.status(400).json({ error: 'Invalid token' });
+  }
 });
 
 module.exports = router;

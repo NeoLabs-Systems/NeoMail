@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -14,6 +15,7 @@
   <link rel="apple-touch-icon" href="/icon.svg">
   <link rel="stylesheet" href="/css/login.css">
 </head>
+
 <body>
   <div class="login-wrap">
     <div class="login-card">
@@ -44,6 +46,20 @@
         </form>
       </div>
 
+      <!-- 2FA Form -->
+      <div id="login-2fa-section" class="form-section">
+        <form id="login-2fa-form">
+          <div class="form-group">
+            <label>Two-Factor Authentication</label>
+            <input type="text" id="login-totp" placeholder="6-digit code" autocomplete="one-time-code" required
+              pattern="[0-9]*" inputmode="numeric" minlength="6" maxlength="6">
+          </div>
+          <button type="submit" class="btn-primary" id="login-2fa-btn">Verify & Sign In</button>
+          <button type="button" class="btn-primary" id="login-2fa-back"
+            style="background:var(--bg-3);color:var(--text);margin-top:0.5rem;border:1px solid var(--border)">Back</button>
+        </form>
+      </div>
+
       <!-- Register Form -->
       <div id="register-section" class="form-section">
         <form id="register-form">
@@ -57,7 +73,8 @@
           </div>
           <div class="form-group">
             <label>Password</label>
-            <input type="password" id="reg-password" placeholder="Min. 8 characters" autocomplete="new-password" required minlength="8">
+            <input type="password" id="reg-password" placeholder="Min. 8 characters" autocomplete="new-password"
+              required minlength="8">
           </div>
           <button type="submit" class="btn-primary" id="reg-btn">Create Account</button>
         </form>
@@ -67,4 +84,5 @@
 
   <script src="/js/login.js"></script>
 </body>
+
 </html>

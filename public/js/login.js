@@ -28,6 +28,12 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
+document.getElementById('login-2fa-back').addEventListener('click', () => {
+  document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('login-section').classList.add('active');
+  document.getElementById('login-totp').value = '';
+});
+
 document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('login-btn');
@@ -39,6 +45,41 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
       body: JSON.stringify({
         username: document.getElementById('login-username').value,
         password: document.getElementById('login-password').value
+      })
+    });
+    const data = await res.json();
+    if (res.status === 403 && data['2fa_required']) {
+      document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+      document.getElementById('login-2fa-section').classList.add('active');
+      document.getElementById('login-totp').focus();
+      setLoading(btn, false);
+      return;
+    }
+    if (res.ok) {
+      showAlert(`Welcome back, ${data.username}!`, 'success');
+      setTimeout(() => window.location.href = '/app', 600);
+    } else {
+      showAlert(data.error || 'Login failed');
+      setLoading(btn, false);
+    }
+  } catch (_) {
+    showAlert('Network error – is the server running?');
+    setLoading(btn, false);
+  }
+});
+
+document.getElementById('login-2fa-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('login-2fa-btn');
+  setLoading(btn, true);
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: document.getElementById('login-username').value,
+        password: document.getElementById('login-password').value,
+        totp: document.getElementById('login-totp').value
       })
     });
     const data = await res.json();

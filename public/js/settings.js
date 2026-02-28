@@ -3,10 +3,10 @@
    ===================================================== */
 
 const PRESETS = {
-  gmail:   { imap_host: 'imap.gmail.com',       imap_port: 993, imap_secure: true,  smtp_host: 'smtp.gmail.com',       smtp_port: 587, smtp_secure: false },
-  outlook: { imap_host: 'outlook.office365.com', imap_port: 993, imap_secure: true,  smtp_host: 'smtp.office365.com',   smtp_port: 587, smtp_secure: false },
-  yahoo:   { imap_host: 'imap.mail.yahoo.com',  imap_port: 993, imap_secure: true,  smtp_host: 'smtp.mail.yahoo.com',  smtp_port: 587, smtp_secure: false },
-  icloud:  { imap_host: 'imap.mail.me.com',     imap_port: 993, imap_secure: true,  smtp_host: 'smtp.mail.me.com',     smtp_port: 587, smtp_secure: false },
+  gmail: { imap_host: 'imap.gmail.com', imap_port: 993, imap_secure: true, smtp_host: 'smtp.gmail.com', smtp_port: 587, smtp_secure: false },
+  outlook: { imap_host: 'outlook.office365.com', imap_port: 993, imap_secure: true, smtp_host: 'smtp.office365.com', smtp_port: 587, smtp_secure: false },
+  yahoo: { imap_host: 'imap.mail.yahoo.com', imap_port: 993, imap_secure: true, smtp_host: 'smtp.mail.yahoo.com', smtp_port: 587, smtp_secure: false },
+  icloud: { imap_host: 'imap.mail.me.com', imap_port: 993, imap_secure: true, smtp_host: 'smtp.mail.me.com', smtp_port: 587, smtp_secure: false },
 };
 
 /* ──── Settings Modal ─────────────────────────────── */
@@ -38,14 +38,14 @@ async function activateSettingsTab(tab) {
   content.innerHTML = '<div style="color:var(--text-3);font-size:13px">Loading…</div>';
 
   switch (tab) {
-    case 'accounts':      await renderAccountsPanel(content); break;
-    case 'labels':        await renderLabelsPanel(content); break;
-    case 'cursor-rules':  await renderCursorRulesPanel(content); break;
-    case 'ai-config':     await renderAIConfigPanel(content); break;
-    case 'general':       await renderGeneralPanel(content); break;
+    case 'accounts': await renderAccountsPanel(content); break;
+    case 'labels': await renderLabelsPanel(content); break;
+    case 'cursor-rules': await renderCursorRulesPanel(content); break;
+    case 'ai-config': await renderAIConfigPanel(content); break;
+    case 'general': await renderGeneralPanel(content); break;
     case 'notifications': await renderNotificationsPanel(content); break;
-    case 'security':      await renderSecurityPanel(content); break;
-    case 'mcp':           await renderMCPPanel(content); break;
+    case 'security': await renderSecurityPanel(content); break;
+    case 'mcp': await renderMCPPanel(content); break;
   }
 }
 
@@ -316,9 +316,9 @@ async function renderAIConfigPanel(el) {
 
   el.querySelector('#btn-save-ai').addEventListener('click', async () => {
     const body = {
-      ai_auto_label:     el.querySelector('#ai-auto-label').checked,
+      ai_auto_label: el.querySelector('#ai-auto-label').checked,
       ai_auto_summarize: el.querySelector('#ai-auto-summarize').checked,
-      ai_auto_awaiting:  el.querySelector('#ai-auto-awaiting').checked,
+      ai_auto_awaiting: el.querySelector('#ai-auto-awaiting').checked,
     };
     const res = await window.api('/api/settings', { method: 'PUT', body });
     if (res?.ok) window.toast('AI settings saved ✓', 'success');
@@ -328,33 +328,33 @@ async function renderAIConfigPanel(el) {
 /* ──── General Panel ─────────────────────────────── */
 async function renderGeneralPanel(el) {
   const settings = await window.api('/api/settings');
-  const pp       = settings?.per_page || 50;
-  const syncInt  = settings?.sync_interval || 3;
-  const accent   = settings?.accent_color || '';
+  const pp = settings?.per_page || 50;
+  const syncInt = settings?.sync_interval || 3;
+  const accent = settings?.accent_color || '';
 
   const ACCENTS = [
-    { label: 'Indigo',  val: '#6366f1' },
-    { label: 'Violet',  val: '#8b5cf6' },
-    { label: 'Sky',     val: '#0ea5e9' },
+    { label: 'Indigo', val: '#6366f1' },
+    { label: 'Violet', val: '#8b5cf6' },
+    { label: 'Sky', val: '#0ea5e9' },
     { label: 'Emerald', val: '#10b981' },
-    { label: 'Rose',    val: '#f43f5e' },
+    { label: 'Rose', val: '#f43f5e' },
   ];
   const accentSwatches = ACCENTS.map(a => `
     <button type="button" class="accent-swatch" data-color="${a.val}" title="${a.label}"
-      style="background:${a.val};width:28px;height:28px;border-radius:50%;border:3px solid ${accent===a.val?'#fff':'transparent'};cursor:pointer;flex-shrink:0;transition:border-color .15s">
+      style="background:${a.val};width:28px;height:28px;border-radius:50%;border:3px solid ${accent === a.val ? '#fff' : 'transparent'};cursor:pointer;flex-shrink:0;transition:border-color .15s">
     </button>`).join('');
 
   const SIG_COLORS = [
-    { l: 'Grey',       v: '#888888' },
+    { l: 'Grey', v: '#888888' },
     { l: 'Light grey', v: '#aaaaaa' },
-    { l: 'Blue',       v: '#6366f1' },
+    { l: 'Blue', v: '#6366f1' },
     { l: 'Muted blue', v: '#94a3b8' },
-    { l: 'Green',      v: '#10b981' },
+    { l: 'Green', v: '#10b981' },
   ];
   const sigColor = settings?.sig_color || '#888888';
   const sigColorSwatches = SIG_COLORS.map(c => `
     <button type="button" class="sig-swatch" data-color="${c.v}" title="${c.l}"
-      style="background:${c.v};width:22px;height:22px;border-radius:50%;border:3px solid ${sigColor===c.v?'#fff':'transparent'};cursor:pointer;flex-shrink:0;transition:border-color .15s">
+      style="background:${c.v};width:22px;height:22px;border-radius:50%;border:3px solid ${sigColor === c.v ? '#fff' : 'transparent'};cursor:pointer;flex-shrink:0;transition:border-color .15s">
     </button>`).join('');
 
   const selStyle = (name, val) => `style="width:auto;padding:7px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:13px;outline:none"`;
@@ -366,32 +366,32 @@ async function renderGeneralPanel(el) {
       <div class="form2-group">
         <label>Emails per page</label>
         <select id="s-per-page" ${selStyle()}>
-          <option value="25" ${pp===25?'selected':''}>25</option>
-          <option value="50" ${pp===50||!settings?.per_page?'selected':''}>50</option>
-          <option value="100" ${pp===100?'selected':''}>100</option>
-          <option value="200" ${pp===200?'selected':''}>200</option>
+          <option value="25" ${pp === 25 ? 'selected' : ''}>25</option>
+          <option value="50" ${pp === 50 || !settings?.per_page ? 'selected' : ''}>50</option>
+          <option value="100" ${pp === 100 ? 'selected' : ''}>100</option>
+          <option value="200" ${pp === 200 ? 'selected' : ''}>200</option>
         </select>
       </div>
 
       <div class="form2-group" style="margin-top:12px">
         <label>Auto-sync interval</label>
         <select id="s-sync-interval" ${selStyle()}>
-          <option value="1"  ${syncInt===1?'selected':''}>Every 1 minute</option>
-          <option value="3"  ${syncInt===3||!settings?.sync_interval?'selected':''}>Every 3 minutes</option>
-          <option value="5"  ${syncInt===5?'selected':''}>Every 5 minutes</option>
-          <option value="10" ${syncInt===10?'selected':''}>Every 10 minutes</option>
-          <option value="15" ${syncInt===15?'selected':''}>Every 15 minutes</option>
+          <option value="1"  ${syncInt === 1 ? 'selected' : ''}>Every 1 minute</option>
+          <option value="3"  ${syncInt === 3 || !settings?.sync_interval ? 'selected' : ''}>Every 3 minutes</option>
+          <option value="5"  ${syncInt === 5 ? 'selected' : ''}>Every 5 minutes</option>
+          <option value="10" ${syncInt === 10 ? 'selected' : ''}>Every 10 minutes</option>
+          <option value="15" ${syncInt === 15 ? 'selected' : ''}>Every 15 minutes</option>
         </select>
       </div>
 
       <div class="form2-check" style="margin-top:16px">
-        <label><input type="checkbox" id="s-mark-on-open" ${settings?.mark_read_on_open!==false?'checked':''}> Mark emails as read when opening</label>
+        <label><input type="checkbox" id="s-mark-on-open" ${settings?.mark_read_on_open !== false ? 'checked' : ''}> Mark emails as read when opening</label>
       </div>
       <div class="form2-check" style="margin-top:8px">
-        <label><input type="checkbox" id="s-show-preview" ${settings?.show_preview!==false?'checked':''}> Show preview text in email list</label>
+        <label><input type="checkbox" id="s-show-preview" ${settings?.show_preview !== false ? 'checked' : ''}> Show preview text in email list</label>
       </div>
       <div class="form2-check" style="margin-top:8px">
-        <label><input type="checkbox" id="s-compact-mode" ${settings?.compact_mode?'checked':''}> Compact email list (reduced row height)</label>
+        <label><input type="checkbox" id="s-compact-mode" ${settings?.compact_mode ? 'checked' : ''}> Compact email list (reduced row height)</label>
       </div>
 
       <div class="form2-group" style="margin-top:20px">
@@ -407,7 +407,7 @@ async function renderGeneralPanel(el) {
         <label>Signature text</label>
         <textarea id="s-signature" rows="4"
           style="width:100%;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:13px;resize:vertical;box-sizing:border-box;margin-top:6px"
-          placeholder="Your name&#10;your@email.com">${window.escHtml(settings?.signature||'')}</textarea>
+          placeholder="Your name&#10;your@email.com">${window.escHtml(settings?.signature || '')}</textarea>
         <div style="font-size:11.5px;color:var(--text-3);margin-top:4px">Appended to new emails and replies. Toggle per-draft with the Sig button in compose.</div>
       </div>
 
@@ -415,18 +415,18 @@ async function renderGeneralPanel(el) {
         <label>Style</label>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
           <select id="s-sig-style" ${selStyle()}>
-            <option value="normal" ${settings?.sig_style!=='italic'?'selected':''}>Normal</option>
-            <option value="italic" ${settings?.sig_style==='italic'?'selected':''}>Italic</option>
+            <option value="normal" ${settings?.sig_style !== 'italic' ? 'selected' : ''}>Normal</option>
+            <option value="italic" ${settings?.sig_style === 'italic' ? 'selected' : ''}>Italic</option>
           </select>
           <select id="s-sig-size" ${selStyle()}>
-            <option value="small"  ${settings?.sig_size==='small'?'selected':''}>Small</option>
-            <option value="normal" ${!settings?.sig_size||settings?.sig_size==='normal'?'selected':''}>Normal</option>
-            <option value="large"  ${settings?.sig_size==='large'?'selected':''}>Large</option>
+            <option value="small"  ${settings?.sig_size === 'small' ? 'selected' : ''}>Small</option>
+            <option value="normal" ${!settings?.sig_size || settings?.sig_size === 'normal' ? 'selected' : ''}>Normal</option>
+            <option value="large"  ${settings?.sig_size === 'large' ? 'selected' : ''}>Large</option>
           </select>
           <select id="s-sig-sep" ${selStyle()}>
-            <option value="dashes" ${!settings?.sig_separator||settings?.sig_separator==='dashes'?'selected':''}>-- separator</option>
-            <option value="hr"     ${settings?.sig_separator==='hr'?'selected':''}>Line separator</option>
-            <option value="none"   ${settings?.sig_separator==='none'?'selected':''}>No separator</option>
+            <option value="dashes" ${!settings?.sig_separator || settings?.sig_separator === 'dashes' ? 'selected' : ''}>-- separator</option>
+            <option value="hr"     ${settings?.sig_separator === 'hr' ? 'selected' : ''}>Line separator</option>
+            <option value="none"   ${settings?.sig_separator === 'none' ? 'selected' : ''}>No separator</option>
           </select>
         </div>
       </div>
@@ -487,7 +487,7 @@ async function renderGeneralPanel(el) {
     const size = sizes[el.querySelector('#s-sig-size').value] || '13px';
     const color = selectedSigColor;
     const sep = el.querySelector('#s-sig-sep').value;
-    const safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    const safe = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
     let sepHtml = sep === 'hr'
       ? '<hr style="border:none;border-top:1px solid #d0d0da;margin:6px 0">'
       : sep !== 'none' ? '<span style="color:#bbb">-- </span><br>' : '';
@@ -495,7 +495,7 @@ async function renderGeneralPanel(el) {
       `<div style="${italic}font-size:${size};color:${color};white-space:pre-wrap">${sepHtml}${safe}</div>`;
   }
 
-  ['#s-signature','#s-sig-style','#s-sig-size','#s-sig-sep'].forEach(id => {
+  ['#s-signature', '#s-sig-style', '#s-sig-size', '#s-sig-sep'].forEach(id => {
     el.querySelector(id).addEventListener('input', updateSigPreview);
     el.querySelector(id).addEventListener('change', updateSigPreview);
   });
@@ -505,15 +505,15 @@ async function renderGeneralPanel(el) {
     const compactMode = el.querySelector('#s-compact-mode').checked;
     const body = {
       mark_read_on_open: el.querySelector('#s-mark-on-open').checked,
-      show_preview:      el.querySelector('#s-show-preview').checked,
-      per_page:          Number(el.querySelector('#s-per-page').value),
-      sync_interval:     Number(el.querySelector('#s-sync-interval').value),
-      compact_mode:      compactMode,
-      signature:         el.querySelector('#s-signature').value.trim(),
-      sig_style:         el.querySelector('#s-sig-style').value,
-      sig_size:          el.querySelector('#s-sig-size').value,
-      sig_separator:     el.querySelector('#s-sig-sep').value,
-      sig_color:         selectedSigColor,
+      show_preview: el.querySelector('#s-show-preview').checked,
+      per_page: Number(el.querySelector('#s-per-page').value),
+      sync_interval: Number(el.querySelector('#s-sync-interval').value),
+      compact_mode: compactMode,
+      signature: el.querySelector('#s-signature').value.trim(),
+      sig_style: el.querySelector('#s-sig-style').value,
+      sig_size: el.querySelector('#s-sig-size').value,
+      sig_separator: el.querySelector('#s-sig-sep').value,
+      sig_color: selectedSigColor,
       ...(selectedAccent && { accent_color: selectedAccent }),
     };
     const res = await window.api('/api/settings', { method: 'PUT', body });
@@ -529,7 +529,7 @@ async function renderGeneralPanel(el) {
       'Archive ALL emails in your inbox?\n\nThis will mark every non-archived, non-trash email as archived. Are you sure?'
     );
     if (!confirmed) return;
-    const btn    = el.querySelector('#btn-archive-all');
+    const btn = el.querySelector('#btn-archive-all');
     const status = el.querySelector('#archive-all-status');
     btn.disabled = true;
     btn.textContent = 'Archiving…';
@@ -567,9 +567,9 @@ async function renderNotificationsPanel(el) {
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:16px">
         <div style="font-size:13px;color:var(--text-2);margin-bottom:6px">Browser notification permission</div>
         <div style="font-size:15px;font-weight:600;color:${permColor[perm]}">${permLabel[perm]}</div>
-        ${perm==='default' ? `<button class="btn-small primary" id="btn-grant-notif" style="margin-top:12px">Grant permission</button>` : ''}
-        ${perm==='denied' ? `<div style="font-size:12px;color:var(--text-3);margin-top:8px">Notifications are blocked. Open your browser site settings to re-enable them.</div>` : ''}
-        ${perm==='granted' ? `<div style="font-size:12.5px;color:var(--text-2);margin-top:8px">Desktop notifications are active for new emails.</div>` : ''}
+        ${perm === 'default' ? `<button class="btn-small primary" id="btn-grant-notif" style="margin-top:12px">Grant permission</button>` : ''}
+        ${perm === 'denied' ? `<div style="font-size:12px;color:var(--text-3);margin-top:8px">Notifications are blocked. Open your browser site settings to re-enable them.</div>` : ''}
+        ${perm === 'granted' ? `<div style="font-size:12.5px;color:var(--text-2);margin-top:8px">Desktop notifications are active for new emails.</div>` : ''}
       </div>
 
       <h3 style="margin-top:4px">Notification Filtering</h3>
@@ -577,8 +577,8 @@ async function renderNotificationsPanel(el) {
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:16px">
         <div style="display:flex;align-items:flex-start;gap:12px">
           <label class="toggle" style="flex-shrink:0;margin-top:2px">
-            <input type="checkbox" id="notif-ai-filter" ${settings?.notif_ai_filter?'checked':''}
-              ${!aiOk?'disabled':''}>
+            <input type="checkbox" id="notif-ai-filter" ${settings?.notif_ai_filter ? 'checked' : ''}
+              ${!aiOk ? 'disabled' : ''}>
             <span class="toggle-track"></span>
           </label>
           <div>
@@ -735,6 +735,8 @@ function showFormAlert(msg, type) {
 }
 
 async function renderSecurityPanel(el) {
+  const user = await window.api('/api/auth/me');
+
   el.innerHTML = `
     <div class="settings-panel">
       <h3>Security</h3>
@@ -755,15 +757,30 @@ async function renderSecurityPanel(el) {
         </div>
         <button type="submit" class="btn-small primary" style="margin-top:4px">Update Password</button>
       </form>
+
+      <h3 style="margin-top:32px">Two-Factor Authentication</h3>
+      <p class="helper">Secure your account with an authenticator app.</p>
+      <div id="2fa-alert" class="form-alert" style="display:none"></div>
+      
+      ${user?.totp_enabled
+      ? `<div style="margin-bottom:1rem;color:#22c55e;font-weight:600;font-size:13px">✓ 2FA is currently enabled</div>
+           <form id="disable-2fa-form" style="max-width:340px">
+             <div class="form2-group"><label>Current Password</label><input type="password" id="disable-2fa-pass" required></div>
+             <div class="form2-group"><label>2FA Code</label><input type="text" id="disable-2fa-code" required minlength="6" maxlength="6"></div>
+             <button type="submit" class="btn-small danger" style="margin-top:4px">Disable 2FA</button>
+           </form>`
+      : `<button class="btn-small primary" id="btn-setup-2fa">Set Up 2FA</button>
+           <div id="setup-2fa-container" style="display:none;margin-top:16px"></div>`
+    }
     </div>
   `;
 
-  el.querySelector('#change-pw-form').addEventListener('submit', async (e) => {
+  el.querySelector('#change-pw-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const alert = document.getElementById('pw-alert');
-    const current  = document.getElementById('pw-current').value;
-    const newPw    = document.getElementById('pw-new').value;
-    const confirm  = document.getElementById('pw-confirm').value;
+    const current = document.getElementById('pw-current').value;
+    const newPw = document.getElementById('pw-new').value;
+    const confirm = document.getElementById('pw-confirm').value;
 
     if (newPw !== confirm) {
       alert.textContent = 'New passwords do not match.';
@@ -795,6 +812,68 @@ async function renderSecurityPanel(el) {
       alert.style.display = 'block';
     }
   });
+
+  el.querySelector('#btn-setup-2fa')?.addEventListener('click', async () => {
+    const container = document.getElementById('setup-2fa-container');
+    container.style.display = 'block';
+    container.innerHTML = 'Loading...';
+
+    const res = await window.api('/api/auth/2fa/generate');
+    if (res?.qrcode) {
+      container.innerHTML = `
+        <div style="background:var(--surface2);padding:16px;border-radius:8px;border:1px solid var(--border)">
+          <p style="font-size:13px;margin-bottom:12px">Scan the QR code with your authenticator app.</p>
+          <img src="${res.qrcode}" alt="2FA QR Code" style="width:200px;height:200px;background:#fff;padding:8px;border-radius:4px">
+          <p style="font-size:12px;color:var(--text-3);margin-top:12px">Or enter manually: <strong>${res.secret}</strong></p>
+          <form id="verify-2fa-form" style="margin-top:16px;max-width:340px">
+            <div class="form2-group">
+              <label>Enter 6-digit Code</label>
+              <input type="text" id="verify-2fa-code" required minlength="6" maxlength="6">
+            </div>
+            <button type="submit" class="btn-small primary" style="margin-top:4px">Verify and Enable</button>
+          </form>
+        </div>
+      `;
+
+      document.getElementById('verify-2fa-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const code = document.getElementById('verify-2fa-code').value;
+        const alert = document.getElementById('2fa-alert');
+
+        try {
+          const vRes = await window.api('/api/auth/2fa/verify', { method: 'POST', body: { token: code } });
+          if (vRes?.ok) {
+            window.toast('2FA Enabled successfully', 'success');
+            renderSecurityPanel(el);
+          } else {
+            alert.textContent = vRes?.error || 'Invalid 2FA code';
+            alert.className = 'form-alert error';
+            alert.style.display = 'block';
+          }
+        } catch (err) { }
+      });
+    }
+  });
+
+  el.querySelector('#disable-2fa-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const alert = document.getElementById('2fa-alert');
+    const pass = document.getElementById('disable-2fa-pass').value;
+    const code = document.getElementById('disable-2fa-code').value;
+
+    const res = await window.api('/api/auth/2fa/disable', {
+      method: 'POST', body: { password: pass, token: code }
+    });
+
+    if (res?.ok) {
+      window.toast('2FA Disabled successfully', 'success');
+      renderSecurityPanel(el);
+    } else {
+      alert.textContent = res?.error || 'Failed to disable 2FA';
+      alert.className = 'form-alert error';
+      alert.style.display = 'block';
+    }
+  });
 }
 
 /* ──── MCP / API Tokens Panel ────────────────────── */
@@ -806,18 +885,18 @@ async function renderMCPPanel(el) {
   const base = location.origin;
 
   // PATs are tokens with no client_id (manually created)
-  const pats        = (tokens || []).filter(t => !t.client_id);
-  const oauthTokens = (tokens || []).filter(t =>  t.client_id);
+  const pats = (tokens || []).filter(t => !t.client_id);
+  const oauthTokens = (tokens || []).filter(t => t.client_id);
 
   el.innerHTML = `
-    <div class="settings-panel">
+        < div class="settings-panel" >
       <h3>MCP Server &amp; OAuth</h3>
       <p class="helper">
         The built-in MCP server lets AI assistants (Claude, Cursor, etc.) access your email
         over the <strong>Model Context Protocol</strong> using OAuth 2.0 or Personal Access Tokens.
       </p>
 
-      <!-- Endpoint info -->
+      <!--Endpoint info-- >
       <div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.25);border-radius:10px;padding:12px 14px;margin-bottom:22px;font-size:13px;line-height:1.9">
         <div><strong>MCP Endpoint:</strong>&nbsp;
           <code style="background:rgba(0,0,0,.25);padding:2px 7px;border-radius:5px;user-select:all">${window.escHtml(base + '/mcp')}</code>
@@ -830,7 +909,7 @@ async function renderMCPPanel(el) {
         </div>
       </div>
 
-      <!-- OAuth Applications -->
+      <!--OAuth Applications-- >
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <h4 style="margin:0">OAuth Applications</h4>
         <span style="background:rgba(99,102,241,.18);color:#a5b4fc;border-radius:20px;padding:1px 9px;font-size:11px;font-weight:600">OAuth 2.0</span>
@@ -841,7 +920,7 @@ async function renderMCPPanel(el) {
       </p>
       <div id="mcp-oauth-app-list" style="margin-bottom:22px"></div>
 
-      <!-- Personal Access Tokens -->
+      <!--Personal Access Tokens-- >
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <h4 style="margin:0">Personal Access Tokens</h4>
         <span style="background:rgba(34,197,94,.12);color:#22c55e;border-radius:20px;padding:1px 9px;font-size:11px;font-weight:600">PAT</span>
@@ -851,7 +930,7 @@ async function renderMCPPanel(el) {
       </p>
       <div id="mcp-token-list" style="margin-bottom:16px"></div>
 
-      <!-- Create new PAT -->
+      <!--Create new PAT-- >
       <div style="border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;background:rgba(255,255,255,.02)">
         <div style="font-weight:600;margin-bottom:10px;font-size:14px">Create new token</div>
         <div class="form2-group">
@@ -879,14 +958,14 @@ async function renderMCPPanel(el) {
         <button class="btn-small primary" id="mcp-create-btn" style="width:100%;padding:10px">Create Token</button>
       </div>
 
-      <!-- New token reveal box -->
+      <!--New token reveal box-- >
       <div id="mcp-new-token-box" style="display:none;margin-top:14px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);border-radius:10px;padding:14px">
         <div style="font-weight:600;margin-bottom:6px;color:#22c55e">✓ Token created – copy it now, it won't be shown again</div>
         <code id="mcp-new-token-value" style="display:block;background:rgba(0,0,0,.4);padding:10px 12px;border-radius:8px;word-break:break-all;font-size:13px;margin-bottom:8px;user-select:all"></code>
         <button class="btn-small" id="mcp-copy-btn">Copy to clipboard</button>
       </div>
 
-      <!-- Claude Desktop snippet -->
+      <!--Claude Desktop snippet-- >
       <h4 style="margin:20px 0 6px">Claude Desktop config snippet</h4>
       <p class="helper" style="margin-bottom:8px">
         For Claude Desktop, paste your token into the snippet below and add it to
@@ -894,8 +973,8 @@ async function renderMCPPanel(el) {
         Tools that support OAuth (e.g. <code>mcp-remote</code> ≥ 0.1) will authorise automatically — no token needed.
       </p>
       <pre id="mcp-claude-snippet" style="background:rgba(0,0,0,.3);border-radius:8px;padding:12px;font-size:12px;overflow-x:auto;white-space:pre-wrap;color:#a5b4fc">Create a token above to generate the config snippet.</pre>
-    </div>
-  `;
+    </div >
+        `;
 
   renderOAuthAppList(oauthClients || []);
   renderTokenList(pats);
@@ -903,8 +982,8 @@ async function renderMCPPanel(el) {
 
   // ── Create PAT ────────────────────────────────────────────────────────────
   el.querySelector('#mcp-create-btn').addEventListener('click', async () => {
-    const name       = el.querySelector('#mcp-tok-name').value.trim();
-    const scopes     = el.querySelector('#mcp-tok-scope').value;
+    const name = el.querySelector('#mcp-tok-name').value.trim();
+    const scopes = el.querySelector('#mcp-tok-scope').value;
     const expireDays = el.querySelector('#mcp-tok-expire').value;
     if (!name) { window.showToast?.('Enter a token name', 'error'); return; }
 
@@ -945,29 +1024,29 @@ async function renderMCPPanel(el) {
     const container = el.querySelector('#mcp-oauth-app-list');
     if (!list.length) {
       container.innerHTML = `
-        <div style="color:var(--text-3);font-size:13px;padding:10px 0;display:flex;align-items:center;gap:8px">
+        < div style = "color:var(--text-3);font-size:13px;padding:10px 0;display:flex;align-items:center;gap:8px" >
           <span style="font-size:18px">🔒</span>
-          No OAuth apps have been granted access yet. AI tools that support OAuth 2.0
+          No OAuth apps have been granted access yet.AI tools that support OAuth 2.0
           will appear here after they authorise.
-        </div>`;
+        </div > `;
       return;
     }
     container.innerHTML = '';
     for (const app of list) {
       const row = document.createElement('div');
       const scopePills = (app.scopes || '').split(' ').filter(Boolean).map(s => scopePill(s)).join('');
-      const lastUsed    = app.last_used   ? `Last used ${window.formatDate(app.last_used)}`    : 'Never used';
-      const authorizedAt = app.authorized_at ? `Authorized ${new Date(app.authorized_at * 1000).toLocaleDateString()}` : '';
+      const lastUsed = app.last_used ? `Last used ${window.formatDate(app.last_used)} ` : 'Never used';
+      const authorizedAt = app.authorized_at ? `Authorized ${new Date(app.authorized_at * 1000).toLocaleDateString()} ` : '';
       const isFullyRevoked = (app.active_token_count || 0) === 0;
 
       row.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)';
       row.innerHTML = `
-        <div style="width:36px;height:36px;border-radius:8px;background:rgba(99,102,241,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">🤖</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:600;font-size:14px${isFullyRevoked ? ';opacity:.45;text-decoration:line-through' : ''}">${window.escHtml(app.client_name)}</div>
-          <div style="font-size:12px;color:var(--text-3);margin-top:3px">${scopePills}</div>
-          <div style="font-size:11px;color:var(--text-3);margin-top:3px">${window.escHtml(authorizedAt + (authorizedAt ? ' · ' : '') + lastUsed)}</div>
-        </div>
+        < div style = "width:36px;height:36px;border-radius:8px;background:rgba(99,102,241,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px" >🤖</div >
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:14px${isFullyRevoked ? ';opacity:.45;text-decoration:line-through' : ''}">${window.escHtml(app.client_name)}</div>
+            <div style="font-size:12px;color:var(--text-3);margin-top:3px">${scopePills}</div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:3px">${window.escHtml(authorizedAt + (authorizedAt ? ' · ' : '') + lastUsed)}</div>
+          </div>
         ${isFullyRevoked
           ? '<span style="font-size:12px;color:#ef4444;font-weight:600;flex-shrink:0;padding-top:2px">Revoked</span>'
           : `<button class="btn-small danger mcp-revoke-app-btn" data-client="${window.escHtml(app.client_id)}" style="flex-shrink:0;margin-top:2px">Revoke Access</button>`
@@ -979,9 +1058,9 @@ async function renderMCPPanel(el) {
     container.querySelectorAll('.mcp-revoke-app-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         const appName = btn.closest('[style]').querySelector('[style*="font-weight:600"]')?.textContent || 'this app';
-        if (!confirm(`Revoke all access for ${appName}? The app will need to re-authorise.`)) return;
+        if (!confirm(`Revoke all access for ${appName} ? The app will need to re - authorise.`)) return;
         btn.disabled = true; btn.textContent = 'Revoking…';
-        await window.api(`/oauth/clients/${btn.dataset.client}/tokens`, { method: 'DELETE' });
+        await window.api(`/ oauth / clients / ${btn.dataset.client}/tokens`, { method: 'DELETE' });
         const updated = await window.api('/oauth/clients');
         renderOAuthAppList(updated || []);
       });
@@ -998,9 +1077,9 @@ async function renderMCPPanel(el) {
     container.innerHTML = '';
     for (const t of list) {
       const row = document.createElement('div');
-      const pills   = (t.scopes || '').split(' ').filter(Boolean).map(s => scopePill(s)).join('');
-      const expiry  = t.expires_at ? ` · Expires ${new Date(t.expires_at * 1000).toLocaleDateString()}` : ' · No expiry';
-      const used    = t.last_used  ? ` · Last used ${window.formatDate(t.last_used)}` : ' · Never used';
+      const pills = (t.scopes || '').split(' ').filter(Boolean).map(s => scopePill(s)).join('');
+      const expiry = t.expires_at ? ` · Expires ${new Date(t.expires_at * 1000).toLocaleDateString()}` : ' · No expiry';
+      const used = t.last_used ? ` · Last used ${window.formatDate(t.last_used)}` : ' · Never used';
       const revoked = t.revoked;
       row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)';
       row.innerHTML = `
@@ -1037,7 +1116,7 @@ async function renderMCPPanel(el) {
   }
 
   function updateSnippet(token) {
-    const pre    = el.querySelector('#mcp-claude-snippet');
+    const pre = el.querySelector('#mcp-claude-snippet');
     const mcpUrl = base + '/mcp';
     if (!token) {
       pre.textContent = JSON.stringify({
