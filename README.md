@@ -13,6 +13,8 @@ A self-hosted web email client with AI superpowers — like Gmail, but running o
 Connect any IMAP/SMTP account and get a fast, private, AI-enhanced inbox.  
 No cloud. No tracking. No ads. Just your email.
 
+<img width="2936" height="1414" alt="image" src="https://github.com/user-attachments/assets/48799499-ef4b-4604-b164-c9610b37aa1f" />
+
 ---
 
 [📖 Setup](docs/setup.md) · [⚙️ Configuration](docs/configuration.md) · [🐳 Docker](docs/docker.md) · [🐛 Issues](https://github.com/NeoLabs-Systems/NeoMail/issues)
