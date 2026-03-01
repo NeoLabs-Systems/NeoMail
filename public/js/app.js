@@ -1260,6 +1260,8 @@ document.addEventListener('keydown', async (e) => {
   // Ignore when typing in inputs/textareas/contenteditable
   if (['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
   if (e.target.isContentEditable) return;
+  // Ignore modifier-key combos (Cmd+C, Ctrl+C, Alt+…, etc.)
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
   // Ignore when modals are open
   if (document.getElementById('settings-overlay')?.style.display === 'flex') return;
   if (document.getElementById('compose-modal')?.style.display === 'flex') return;
