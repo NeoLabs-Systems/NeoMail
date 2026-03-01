@@ -76,7 +76,7 @@ async function api(path, opts = {}) {
 
 /* ── Init ──────────────────────────────────────────── */
 async function init() {
-  // Register service worker (PWA)
+  // Register service worker (push notifications only)
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
