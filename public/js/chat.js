@@ -1,5 +1,5 @@
 /* =====================================================
-   MailNeo – AI Email Chat (RAG-powered)
+   NeoMail – AI Email Chat (RAG-powered)
    ===================================================== */
 'use strict';
 
@@ -37,7 +37,7 @@
   /* ── Welcome message ────────────────────────────── */
   function showWelcome() {
     appendMessage('assistant',
-      '👋 Hi! I\'m your MailNeo AI assistant. I can search through all your emails to answer questions, find information, summarise threads, or help you remember details.\n\nTry asking me something like:\n• *"Show me emails from Alice last month"*\n• *"What invoices did I receive this year?"*\n• *"Summarise the thread about the project deadline"*'
+      '👋 Hi! I\'m your NeoMail AI assistant. I can search through all your emails to answer questions, find information, summarise threads, or help you remember details.\n\nTry asking me something like:\n• *"Show me emails from Alice last month"*\n• *"What invoices did I receive this year?"*\n• *"Summarise the thread about the project deadline"*'
     );
   }
 

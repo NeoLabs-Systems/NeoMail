@@ -1,5 +1,5 @@
 /* =====================================================
-   MailNeo – File Preview
+   NeoMail – File Preview
    Images, PDFs shown inline; others trigger download
    ===================================================== */
 

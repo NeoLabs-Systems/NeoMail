@@ -1,5 +1,5 @@
 /* =====================================================
-   MailNeo – AI Features Frontend
+   NeoMail – AI Features Frontend
    ===================================================== */
 
 /* ──── Header: AI Label (single email) ──────────────── */

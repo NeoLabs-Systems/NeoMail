@@ -173,14 +173,14 @@ router.get('/2fa/generate', async (req, res) => {
   if (user.totp_enabled) return res.status(400).json({ error: '2FA is already enabled' });
 
   const secret = speakeasy.generateSecret({
-    name: `MailNeo (${user.email})`
+    name: `NeoMail (${user.email})`
   });
 
   db.prepare('UPDATE users SET totp_secret = ? WHERE id = ?').run(secret.base32, req.session.userId);
 
   try {
     const dataUrl = await qrcode.toDataURL(secret.otpauth_url);
-    res.json({ secret: secret.base32, qrcode: dataUrl });
+    res.json({ qrcode: dataUrl });
   } catch (err) {
     res.status(500).json({ error: 'Error generating QR code' });
   }

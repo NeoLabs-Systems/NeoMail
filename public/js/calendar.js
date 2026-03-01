@@ -1,5 +1,5 @@
 /* =====================================================
-   MailNeo – Calendar Detection & ICS Export
+   NeoMail – Calendar Detection & ICS Export
    - Parses ICS attachments into a preview card
    - Detects date/time patterns in plain-text emails
    - Exports as .ics or opens Google Calendar
@@ -170,7 +170,7 @@ function buildICS(event) {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//MailNeo//MailNeo Calendar//EN',
+    'PRODID:-//NeoMail//NeoMail Calendar//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',

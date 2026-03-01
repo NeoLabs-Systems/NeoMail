@@ -2,6 +2,9 @@
 
 const alertEl = document.getElementById('alert');
 
+let _pendingUsername = '';
+let _pendingPassword = '';
+
 function showAlert(msg, type = 'error') {
   alertEl.textContent = msg;
   alertEl.className = `alert ${type} show`;
@@ -32,19 +35,24 @@ document.getElementById('login-2fa-back').addEventListener('click', () => {
   document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
   document.getElementById('login-section').classList.add('active');
   document.getElementById('login-totp').value = '';
+  _pendingUsername = '';
+  _pendingPassword = '';
 });
 
 document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('login-btn');
   setLoading(btn, true);
+  // Capture now before the form section is hidden
+  _pendingUsername = document.getElementById('login-username').value;
+  _pendingPassword = document.getElementById('login-password').value;
   try {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        username: document.getElementById('login-username').value,
-        password: document.getElementById('login-password').value
+        username: _pendingUsername,
+        password: _pendingPassword
       })
     });
     const data = await res.json();
@@ -77,8 +85,8 @@ document.getElementById('login-2fa-form').addEventListener('submit', async (e) =
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        username: document.getElementById('login-username').value,
-        password: document.getElementById('login-password').value,
+        username: _pendingUsername,
+        password: _pendingPassword,
         totp: document.getElementById('login-totp').value
       })
     });

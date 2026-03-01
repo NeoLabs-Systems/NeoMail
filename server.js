@@ -18,9 +18,10 @@ const oauthRoutes = require('./routes/oauth');
 const mcpRoutes   = require('./routes/mcp');
 
 const { db } = require('./db/database');
-const { startIdleWatcher, syncAccount } = require('./services/imap');
+const { startIdleWatcher, syncAccount, moveEmail, getSpecialFolders } = require('./services/imap');
 const { sendEmail } = require('./services/smtp');
-const { labelEmail, summarizeEmail, shouldNotify, analyzeEmail, isAvailable: aiIsAvailable } = require('./services/ai');
+const { summarizeEmail, shouldNotify, analyzeEmail, isAvailable: aiIsAvailable } = require('./services/ai');
+const backup = require('./services/backup');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -111,7 +112,7 @@ app.use('/mcp', mcpRoutes);
 // OAuth consent page (served as static file; needs session auth)
 app.get('/mcp-authorize', requireAuth, (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
-  res.sendFile(require('path').join(__dirname, 'public', 'mcp-authorize.html'));
+  res.sendFile(path.join(__dirname, 'public', 'mcp-authorize.html'));
 });
 
 // Server-Sent Events for real-time notifications
@@ -153,6 +154,64 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
+async function runAutoAI(account, cachedAnalysis = null) {
+  if (!aiIsAvailable()) return;
+  const userId = db.prepare('SELECT user_id FROM accounts WHERE id = ?').get(account.id)?.user_id;
+  if (!userId) return;
+
+  const settings = {};
+  for (const row of db.prepare('SELECT key, value FROM app_settings WHERE user_id = ?').all(userId)) {
+    try { settings[row.key] = JSON.parse(row.value); } catch (_) { settings[row.key] = row.value; }
+  }
+
+  const needsLabelOrAwaiting = settings.ai_auto_label || settings.ai_auto_awaiting;
+  if (!needsLabelOrAwaiting && !settings.ai_auto_summarize) return;
+
+  // Only pick emails that haven't been AI-processed yet
+  const newEmails = db.prepare(
+    'SELECT * FROM emails WHERE account_id = ? AND ai_label_done = 0 ORDER BY date DESC LIMIT 20'
+  ).all(account.id);
+  if (!newEmails.length) return;
+
+  for (const email of newEmails) {
+    try {
+      if (needsLabelOrAwaiting) {
+        const useCache = cachedAnalysis && cachedAnalysis.emailId === email.id;
+        const { label, notify, awaiting_reply } = useCache
+          ? cachedAnalysis.result
+          : await analyzeEmail(email.subject, email.body_html, email.body_text);
+
+        if (settings.ai_auto_label && label) {
+          db.prepare('UPDATE emails SET ai_label = ?, ai_label_done = 1 WHERE id = ?').run(label, email.id);
+        } else {
+          db.prepare('UPDATE emails SET ai_label_done = 1 WHERE id = ?').run(email.id);
+        }
+
+        if (settings.ai_auto_awaiting) {
+          db.prepare('UPDATE emails SET awaiting_reply = ? WHERE id = ?').run(awaiting_reply ? 1 : 0, email.id);
+        }
+
+        // Auto-archive emails the AI considers unimportant (notify === false)
+        if (settings.ai_auto_archive_unimportant && !notify && !email.is_archived) {
+          db.prepare('UPDATE emails SET is_archived = 1 WHERE id = ?').run(email.id);
+          getSpecialFolders(account)
+            .then(special => moveEmail(account, email.folder, email.uid, special.archive || 'Archive'))
+            .catch(() => {});
+        }
+      }
+
+      if (settings.ai_auto_summarize && (email.body_text || email.body_html)) {
+        const summary = await summarizeEmail(email.subject, email.body_html, email.body_text);
+        if (summary) db.prepare('UPDATE emails SET ai_summary = ? WHERE id = ?').run(summary, email.id);
+      }
+
+      await new Promise(r => setTimeout(r, 150));
+    } catch (aiErr) {
+      console.error('[AUTO-AI]', aiErr.message);
+    }
+  }
+}
+
 function startAllIdleWatchers() {
   const accounts = db.prepare('SELECT * FROM accounts').all();
   for (const account of accounts) {
@@ -170,7 +229,7 @@ function startAllIdleWatchers() {
       }
 
       let skipNotif = false;
-      let latestAnalysis = null; // cached analyzeEmail result for the latest email
+      let latestAnalysis = null;
 
       if (aiIsAvailable() && settings.notif_ai_filter && (settings.ai_auto_label || settings.ai_auto_awaiting) && latest) {
         latestAnalysis = await analyzeEmail(latest.subject, null, latest.body_text);
@@ -190,37 +249,8 @@ function startAllIdleWatchers() {
           }));
       }
 
-      if (!aiIsAvailable()) return;
-      if (settings.ai_auto_label || settings.ai_auto_summarize || settings.ai_auto_awaiting) {
-        const newEmails = db.prepare(
-          'SELECT * FROM emails WHERE account_id = ? AND ai_label IS NULL ORDER BY date DESC LIMIT 20'
-        ).all(acc.id);
-
-        for (const email of newEmails) {
-          try {
-            if (settings.ai_auto_label || settings.ai_auto_awaiting) {
-              // Single analyzeEmail call covers both label + awaiting_reply detection
-              // Reuse cached result for the latest email if analyzeEmail was already called above
-              const isLatest = email.id === latest?.id;
-              const { label, awaiting_reply } = (isLatest && latestAnalysis)
-                ? latestAnalysis
-                : await analyzeEmail(email.subject, email.body_html, email.body_text);
-              if (settings.ai_auto_label && label) {
-                db.prepare('UPDATE emails SET ai_label = ? WHERE id = ?').run(label, email.id);
-              }
-              if (settings.ai_auto_awaiting) {
-                db.prepare('UPDATE emails SET awaiting_reply = ? WHERE id = ?').run(awaiting_reply ? 1 : 0, email.id);
-              }
-            }
-            if (settings.ai_auto_summarize && (email.body_text || email.body_html)) {
-              const summary = await summarizeEmail(email.subject, email.body_html, email.body_text);
-              if (summary) db.prepare('UPDATE emails SET ai_summary = ? WHERE id = ?').run(summary, email.id);
-            }
-          } catch (aiErr) {
-            console.error('[AUTO-AI]', aiErr.message);
-          }
-        }
-      }
+      const cached = (latestAnalysis && latest) ? { emailId: latest.id, result: latestAnalysis } : null;
+      runAutoAI(acc, cached).catch(err => console.error('[AUTO-AI IDLE]', err.message));
     });
   }
   if (accounts.length > 0) {
@@ -230,7 +260,7 @@ function startAllIdleWatchers() {
 
 app.listen(PORT, () => {
   console.log(`\n╔══════════════════════════════════════╗`);
-  console.log(`║  MailNeo is running                   ║`);
+  console.log(`║  NeoMail is running                    ║`);
   console.log(`║  → http://localhost:${PORT}             ║`);
   console.log(`╚══════════════════════════════════════╝\n`);
 
@@ -240,17 +270,23 @@ app.listen(PORT, () => {
 
   startAllIdleWatchers();
 
+  // Initial backup on launch, then every 6 hours
+  if (backup.isEnabled()) {
+    backup.runBackup().catch(err => console.error('[BACKUP]', err.message));
+    setInterval(() => backup.runBackup().catch(err => console.error('[BACKUP]', err.message)), 6 * 60 * 60 * 1000);
+  }
+
   setInterval(async () => {
     const accounts = db.prepare('SELECT * FROM accounts').all();
     for (const account of accounts) {
       try { await syncAccount(account); } catch (err) {
         console.error(`[PERIODIC SYNC] Account ${account.id}:`, err.message);
       }
+      runAutoAI(account).catch(err => console.error(`[AUTO-AI SYNC] Account ${account.id}:`, err.message));
     }
     db.prepare('DELETE FROM notifications WHERE seen = 1 AND created_at < ?')
       .run(Math.floor(Date.now() / 1000) - 7 * 24 * 60 * 60);
 
-    // Purge expired / used OAuth authorization codes (they have a 5-min TTL anyway)
     db.prepare('DELETE FROM oauth_codes WHERE used = 1 OR expires_at < ?')
       .run(Math.floor(Date.now() / 1000));
 

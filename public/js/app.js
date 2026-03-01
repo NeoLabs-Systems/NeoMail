@@ -1,5 +1,5 @@
 /* =====================================================
-   MailNeo – Main App JS
+   NeoMail – Main App JS
    Handles email list, view, navigation, bulk actions
    ===================================================== */
 
@@ -1181,7 +1181,7 @@ async function updateStats() {
   setBadge('badge-starred', stats.starred);
   setBadge('badge-awaiting', stats.awaiting);
   // Update browser tab title
-  document.title = stats.unread > 0 ? `(${stats.unread}) MailNeo` : 'MailNeo';
+  document.title = stats.unread > 0 ? `(${stats.unread}) NeoMail` : 'NeoMail';
 }
 
 function setBadge(id, count) {
@@ -1231,7 +1231,7 @@ function setupSSE() {
         const notifTitle = data.count === 1 && data.from
           ? `New mail from ${data.from}`
           : `${data.count} new email(s)`;
-        const notifBody  = data.subject || 'You have new mail in MailNeo';
+        const notifBody  = data.subject || 'You have new mail in NeoMail';
         showNativeNotification(notifTitle, notifBody, 'mailneo-mail');
       }
     } catch (_) {}

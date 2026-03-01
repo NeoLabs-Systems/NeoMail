@@ -18,7 +18,7 @@ const ALLOWED_SETTINGS = new Set([
   'mark_read_on_open', 'show_preview', 'per_page', 'sync_interval',
   'compact_mode', 'accent_color',
   'signature', 'sig_style', 'sig_size', 'sig_color', 'sig_separator',
-  'ai_auto_label', 'ai_auto_summarize', 'ai_auto_awaiting',
+  'ai_auto_label', 'ai_auto_summarize', 'ai_auto_awaiting', 'ai_auto_archive_unimportant',
   'notif_ai_filter',
 ]);
 

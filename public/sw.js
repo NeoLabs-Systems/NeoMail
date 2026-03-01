@@ -1,5 +1,5 @@
-/* MailNeo Service Worker */
-const CACHE = 'mailneo-v5';
+/* NeoMail Service Worker */
+const CACHE = 'neomail-v1';
 const STATIC = [
   '/css/app.css',
   '/css/login.css',
@@ -65,10 +65,10 @@ self.addEventListener('fetch', e => {
 
 /* ── Push Notifications ───────────────────────────── */
 self.addEventListener('push', e => {
-  let data = { title: 'MailNeo', body: 'New email received' };
+  let data = { title: 'NeoMail', body: 'New email received' };
   try { data = e.data.json(); } catch (_) {}
   e.waitUntil(
-    self.registration.showNotification(data.title || 'MailNeo', {
+    self.registration.showNotification(data.title || 'NeoMail', {
       body: data.body || '',
       icon: '/icon.svg',
       badge: '/icon.svg',

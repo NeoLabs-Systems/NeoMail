@@ -325,7 +325,7 @@ router.post('/', requireMcpAuth(), express.json({ limit: '4mb' }), async (req, r
 // GET /mcp – return capability info (useful for health probes)
 router.get('/', (req, res) => {
   res.json({
-    name:       'MailNeo MCP Server',
+    name:       'NeoMail MCP Server',
     version:    '1.0.0',
     transport:  'streamable-http',
     auth:       'Bearer (OAuth 2.0)',
@@ -349,7 +349,7 @@ async function dispatch(req, msg) {
       case 'initialize':
         return ok(id, {
           protocolVersion: '2025-03-26',
-          serverInfo:      { name: 'MailNeo', version: '1.0.0' },
+          serverInfo:      { name: 'NeoMail', version: '1.0.0' },
           capabilities:    { tools: { listChanged: false } },
         });
 

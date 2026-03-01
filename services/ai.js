@@ -238,7 +238,7 @@ async function chatWithContext(userMessage, history, contextBlock, meta) {
   if (!client) throw new Error('OpenAI API key not configured');
 
   const systemPrompt = [
-    'You are MailNeo AI, an intelligent email assistant.',
+    'You are NeoMail AI, an intelligent email assistant.',
     'You help users find information, summarise threads, and answer questions about their emails.',
     `Today is ${meta.today}.`,
     `The user has ${meta.totalEmails} emails indexed across their accounts.`,

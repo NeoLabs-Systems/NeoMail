@@ -1,6 +1,6 @@
 # Setup Guide
 
-Everything you need to go from zero to a running MailNeo inbox.
+Everything you need to go from zero to a running NeoMail inbox.
 
 ---
 
@@ -74,7 +74,7 @@ Once logged in:
 3. Use the **Quick Setup** presets for Gmail / Outlook / Yahoo / iCloud
 4. Click **Verify SMTP** to test the connection before saving
 
-MailNeo will immediately start syncing your mailbox in the background.
+NeoMail will immediately start syncing your mailbox in the background.
 
 ---
 
@@ -86,8 +86,8 @@ Gmail requires an **App Password** (not your normal password).
 
 1. Go to [myaccount.google.com/security](https://myaccount.google.com/security)
 2. Enable **2-Step Verification** if not already on
-3. Search for **App Passwords** → Create one → name it "MailNeo"
-4. Use that 16-character password in MailNeo
+3. Search for **App Passwords** → Create one → name it "NeoMail"
+4. Use that 16-character password in NeoMail
 
 **Settings:**
 ```
@@ -99,7 +99,7 @@ SMTP host:  smtp.gmail.com   port: 587  TLS: off (STARTTLS)
 
 1. Go to [account.microsoft.com/security](https://account.microsoft.com/security)
 2. Under **Advanced security** → enable **Two-step verification**
-3. Create an **App password** and use it in MailNeo
+3. Create an **App password** and use it in NeoMail
 
 **Settings:**
 ```
@@ -152,7 +152,7 @@ The database schema is updated automatically on startup via safe migrations.
 
 ## Running on a Server
 
-To expose MailNeo publicly, put it behind a reverse proxy (nginx / Caddy) with HTTPS.
+To expose NeoMail publicly, put it behind a reverse proxy (nginx / Caddy) with HTTPS.
 
 **Recommended Caddy config:**
 

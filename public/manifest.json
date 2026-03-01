@@ -1,6 +1,6 @@
 {
-  "name": "MailNeo",
-  "short_name": "MailNeo",
+  "name": "NeoMail",
+  "short_name": "NeoMail",
   "description": "Modern self-hosted email client with AI features",
   "start_url": "/app",
   "scope": "/",

@@ -1,6 +1,6 @@
 # Docker Deployment
 
-The fastest way to run MailNeo in production.
+The fastest way to run NeoMail in production.
 
 ---
 
@@ -16,7 +16,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-MailNeo is now running at **http://localhost:3001**.
+NeoMail is now running at **http://localhost:3001**.
 
 ---
 
@@ -24,7 +24,7 @@ MailNeo is now running at **http://localhost:3001**.
 
 The included `docker-compose.yml` gives you:
 
-- MailNeo server on port `3001`
+- NeoMail server on port `3001`
 - Persistent data volume at `./data` (SQLite database + attachments)
 - Automatic container restart on crash or reboot
 
@@ -57,7 +57,7 @@ mail.yourdomain.com {
 }
 ```
 
-Add Caddy to the same Docker network as MailNeo in `docker-compose.yml`:
+Add Caddy to the same Docker network as NeoMail in `docker-compose.yml`:
 
 ```yaml
 networks:

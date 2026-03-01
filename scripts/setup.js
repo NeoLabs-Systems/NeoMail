@@ -10,7 +10,7 @@ function generate() {
   const encryptionKey = crypto.randomBytes(32).toString('hex');
   const sessionSecret = crypto.randomBytes(32).toString('hex');
 
-  const envContent = `# MailNeo Environment Configuration
+  const envContent = `# NeoMail Environment Configuration
 # Generated: ${new Date().toISOString()}
 
 # Server

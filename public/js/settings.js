@@ -1,5 +1,5 @@
 /* =====================================================
-   MailNeo – Settings Modal
+   NeoMail – Settings Modal
    ===================================================== */
 
 const PRESETS = {
@@ -256,7 +256,7 @@ async function renderAIConfigPanel(el) {
         ${status?.available ? 'AI Available (OpenAI connected)' : 'AI Unavailable (no API key)'}
       </div>
       <p class="helper">
-        MailNeo uses OpenAI.<br><br>
+        NeoMail uses OpenAI.<br><br>
         To enable AI features, set <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px">OPENAI_API_KEY</code> in your <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px">.env</code> file and restart the server.
       </p>
 
@@ -296,6 +296,18 @@ async function renderAIConfigPanel(el) {
             <div style="font-size:12px;color:var(--text-3);margin-top:2px">Automatically flag emails where the sender expects a reply from you</div>
           </div>
         </div>
+
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <label class="toggle" style="flex-shrink:0;margin-top:2px">
+            <input type="checkbox" id="ai-auto-archive-unimportant" ${settings?.ai_auto_archive_unimportant ? 'checked' : ''}>
+            <span class="toggle-track"></span>
+          </label>
+          <div>
+            <div style="font-size:13.5px;font-weight:600">Auto-archive unimportant mail</div>
+            <div style="font-size:12px;color:var(--text-3);margin-top:2px">Automatically move newsletters, marketing &amp; automated mail to Archive when they arrive (AI decides what's unimportant). Off by default.</div>
+          </div>
+        </div>
+
       </div>
 
       <button class="btn-small primary" id="btn-save-ai" style="margin-top:20px">Save Automation Settings</button>
@@ -309,7 +321,8 @@ async function renderAIConfigPanel(el) {
         • <strong>Cursor Rules</strong> – Plain English inbox automation rules<br>
         • <strong>Auto-label</strong> – Label new mail the moment it arrives<br>
         • <strong>Auto-summarize</strong> – Summarize new mail the moment it arrives<br>
-        • <strong>Auto-awaiting</strong> – Flag emails expecting a reply when they arrive
+        • <strong>Auto-awaiting</strong> – Flag emails expecting a reply when they arrive<br>
+        • <strong>Auto-archive unimportant</strong> – Move newsletters &amp; marketing to Archive automatically (off by default)
       </div>
     </div>
   `;
@@ -319,6 +332,7 @@ async function renderAIConfigPanel(el) {
       ai_auto_label: el.querySelector('#ai-auto-label').checked,
       ai_auto_summarize: el.querySelector('#ai-auto-summarize').checked,
       ai_auto_awaiting: el.querySelector('#ai-auto-awaiting').checked,
+      ai_auto_archive_unimportant: el.querySelector('#ai-auto-archive-unimportant').checked,
     };
     const res = await window.api('/api/settings', { method: 'PUT', body });
     if (res?.ok) window.toast('AI settings saved ✓', 'success');
@@ -740,7 +754,7 @@ async function renderSecurityPanel(el) {
   el.innerHTML = `
     <div class="settings-panel">
       <h3>Security</h3>
-      <p class="helper">Change the password you use to log in to MailNeo.</p>
+      <p class="helper">Change the password you use to log in to NeoMail.</p>
       <div id="pw-alert" class="form-alert" style="display:none"></div>
       <form id="change-pw-form" autocomplete="off" style="max-width:340px">
         <div class="form2-group">
@@ -769,8 +783,7 @@ async function renderSecurityPanel(el) {
              <div class="form2-group"><label>2FA Code</label><input type="text" id="disable-2fa-code" required minlength="6" maxlength="6"></div>
              <button type="submit" class="btn-small danger" style="margin-top:4px">Disable 2FA</button>
            </form>`
-      : `<button class="btn-small primary" id="btn-setup-2fa">Set Up 2FA</button>
-           <div id="setup-2fa-container" style="display:none;margin-top:16px"></div>`
+      : `<button class="btn-small primary" id="btn-setup-2fa">Set Up 2FA</button>`
     }
     </div>
   `;
@@ -814,45 +827,77 @@ async function renderSecurityPanel(el) {
   });
 
   el.querySelector('#btn-setup-2fa')?.addEventListener('click', async () => {
-    const container = document.getElementById('setup-2fa-container');
-    container.style.display = 'block';
-    container.innerHTML = 'Loading...';
-
+    const btn = el.querySelector('#btn-setup-2fa');
+    btn.disabled = true;
+    btn.textContent = 'Loading…';
     const res = await window.api('/api/auth/2fa/generate');
-    if (res?.qrcode) {
-      container.innerHTML = `
-        <div style="background:var(--surface2);padding:16px;border-radius:8px;border:1px solid var(--border)">
-          <p style="font-size:13px;margin-bottom:12px">Scan the QR code with your authenticator app.</p>
-          <img src="${res.qrcode}" alt="2FA QR Code" style="width:200px;height:200px;background:#fff;padding:8px;border-radius:4px">
-          <p style="font-size:12px;color:var(--text-3);margin-top:12px">Or enter manually: <strong>${res.secret}</strong></p>
-          <form id="verify-2fa-form" style="margin-top:16px;max-width:340px">
-            <div class="form2-group">
-              <label>Enter 6-digit Code</label>
-              <input type="text" id="verify-2fa-code" required minlength="6" maxlength="6">
-            </div>
-            <button type="submit" class="btn-small primary" style="margin-top:4px">Verify and Enable</button>
-          </form>
-        </div>
-      `;
-
-      document.getElementById('verify-2fa-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const code = document.getElementById('verify-2fa-code').value;
-        const alert = document.getElementById('2fa-alert');
-
-        try {
-          const vRes = await window.api('/api/auth/2fa/verify', { method: 'POST', body: { token: code } });
-          if (vRes?.ok) {
-            window.toast('2FA Enabled successfully', 'success');
-            renderSecurityPanel(el);
-          } else {
-            alert.textContent = vRes?.error || 'Invalid 2FA code';
-            alert.className = 'form-alert error';
-            alert.style.display = 'block';
-          }
-        } catch (err) { }
-      });
+    btn.disabled = false;
+    btn.textContent = 'Set Up 2FA';
+    if (!res?.qrcode) {
+      window.toast(res?.error || 'Failed to generate 2FA setup', 'error');
+      return;
     }
+
+    // ── 2FA setup popup ─────────────────────────────────
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)';
+    const modal = document.createElement('div');
+    modal.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;width:360px;max-width:94vw;box-shadow:0 24px 80px rgba(0,0,0,.6)';
+    modal.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <h3 style="margin:0;font-size:18px">Set Up Two-Factor Auth</h3>
+        <button id="tfa-close-btn" style="background:none;border:none;cursor:pointer;color:var(--text-3);font-size:24px;padding:0;line-height:1" aria-label="Close">&times;</button>
+      </div>
+      <p style="font-size:13px;color:var(--text-2);margin-bottom:16px">Scan the QR code with your authenticator app (Google Authenticator, Authy, 1Password, etc.)</p>
+      <div style="text-align:center;margin-bottom:20px">
+        <img src="${res.qrcode}" alt="2FA QR Code" style="width:200px;height:200px;background:#fff;padding:8px;border-radius:8px">
+      </div>
+      <div id="tfa-setup-alert" class="form-alert" style="display:none;margin-bottom:12px"></div>
+      <form id="tfa-verify-form">
+        <div class="form2-group">
+          <label>Enter 6-digit code to confirm</label>
+          <input type="text" id="tfa-code-input" inputmode="numeric" pattern="[0-9 ]*" minlength="6" maxlength="7"
+            autocomplete="one-time-code" required placeholder="000 000"
+            style="text-align:center;letter-spacing:3px;font-size:22px">
+        </div>
+        <button type="submit" class="btn-small primary" style="width:100%;padding:10px;margin-top:8px">Verify &amp; Enable 2FA</button>
+      </form>
+    `;
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    const closePopup = () => overlay.remove();
+    modal.querySelector('#tfa-close-btn').addEventListener('click', closePopup);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closePopup(); });
+    setTimeout(() => modal.querySelector('#tfa-code-input')?.focus(), 80);
+
+    modal.querySelector('#tfa-verify-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const code = modal.querySelector('#tfa-code-input').value.replace(/\s+/g, '');
+      const alertEl = modal.querySelector('#tfa-setup-alert');
+      const submitBtn = e.target.querySelector('button[type=submit]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Verifying…';
+      try {
+        const vRes = await window.api('/api/auth/2fa/verify', { method: 'POST', body: { token: code } });
+        if (vRes?.ok) {
+          closePopup();
+          window.toast('2FA enabled ✓', 'success');
+          renderSecurityPanel(el);
+        } else {
+          alertEl.textContent = vRes?.error || 'Invalid code – try again';
+          alertEl.className = 'form-alert error';
+          alertEl.style.display = 'block';
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Verify & Enable 2FA';
+          modal.querySelector('#tfa-code-input').value = '';
+          modal.querySelector('#tfa-code-input').focus();
+        }
+      } catch (_) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Verify & Enable 2FA';
+      }
+    });
   });
 
   el.querySelector('#disable-2fa-form')?.addEventListener('submit', async (e) => {
@@ -889,14 +934,14 @@ async function renderMCPPanel(el) {
   const oauthTokens = (tokens || []).filter(t => t.client_id);
 
   el.innerHTML = `
-        < div class="settings-panel" >
+    <div class="settings-panel">
       <h3>MCP Server &amp; OAuth</h3>
       <p class="helper">
         The built-in MCP server lets AI assistants (Claude, Cursor, etc.) access your email
         over the <strong>Model Context Protocol</strong> using OAuth 2.0 or Personal Access Tokens.
       </p>
 
-      <!--Endpoint info-- >
+      <!-- Endpoint info -->
       <div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.25);border-radius:10px;padding:12px 14px;margin-bottom:22px;font-size:13px;line-height:1.9">
         <div><strong>MCP Endpoint:</strong>&nbsp;
           <code style="background:rgba(0,0,0,.25);padding:2px 7px;border-radius:5px;user-select:all">${window.escHtml(base + '/mcp')}</code>
@@ -909,7 +954,7 @@ async function renderMCPPanel(el) {
         </div>
       </div>
 
-      <!--OAuth Applications-- >
+      <!-- OAuth Applications -->
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <h4 style="margin:0">OAuth Applications</h4>
         <span style="background:rgba(99,102,241,.18);color:#a5b4fc;border-radius:20px;padding:1px 9px;font-size:11px;font-weight:600">OAuth 2.0</span>
@@ -920,7 +965,7 @@ async function renderMCPPanel(el) {
       </p>
       <div id="mcp-oauth-app-list" style="margin-bottom:22px"></div>
 
-      <!--Personal Access Tokens-- >
+      <!-- Personal Access Tokens -->
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <h4 style="margin:0">Personal Access Tokens</h4>
         <span style="background:rgba(34,197,94,.12);color:#22c55e;border-radius:20px;padding:1px 9px;font-size:11px;font-weight:600">PAT</span>
@@ -930,7 +975,7 @@ async function renderMCPPanel(el) {
       </p>
       <div id="mcp-token-list" style="margin-bottom:16px"></div>
 
-      <!--Create new PAT-- >
+      <!-- Create new PAT -->
       <div style="border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;background:rgba(255,255,255,.02)">
         <div style="font-weight:600;margin-bottom:10px;font-size:14px">Create new token</div>
         <div class="form2-group">
@@ -940,9 +985,9 @@ async function renderMCPPanel(el) {
         <div class="form2-group">
           <label>Permissions</label>
           <select id="mcp-tok-scope">
-            <option value="email:read">Read only  (list, search, view emails)</option>
-            <option value="email:write">Write only  (send, star, trash, mark)</option>
-            <option value="email:read email:write">Read + Write  (full access)</option>
+            <option value="email:read">Read only (list, search, view emails)</option>
+            <option value="email:write">Write only (send, star, trash, mark)</option>
+            <option value="email:read email:write">Read + Write (full access)</option>
           </select>
         </div>
         <div class="form2-group">
@@ -958,14 +1003,14 @@ async function renderMCPPanel(el) {
         <button class="btn-small primary" id="mcp-create-btn" style="width:100%;padding:10px">Create Token</button>
       </div>
 
-      <!--New token reveal box-- >
+      <!-- New token reveal box -->
       <div id="mcp-new-token-box" style="display:none;margin-top:14px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);border-radius:10px;padding:14px">
         <div style="font-weight:600;margin-bottom:6px;color:#22c55e">✓ Token created – copy it now, it won't be shown again</div>
         <code id="mcp-new-token-value" style="display:block;background:rgba(0,0,0,.4);padding:10px 12px;border-radius:8px;word-break:break-all;font-size:13px;margin-bottom:8px;user-select:all"></code>
         <button class="btn-small" id="mcp-copy-btn">Copy to clipboard</button>
       </div>
 
-      <!--Claude Desktop snippet-- >
+      <!-- Claude Desktop snippet -->
       <h4 style="margin:20px 0 6px">Claude Desktop config snippet</h4>
       <p class="helper" style="margin-bottom:8px">
         For Claude Desktop, paste your token into the snippet below and add it to
@@ -973,8 +1018,8 @@ async function renderMCPPanel(el) {
         Tools that support OAuth (e.g. <code>mcp-remote</code> ≥ 0.1) will authorise automatically — no token needed.
       </p>
       <pre id="mcp-claude-snippet" style="background:rgba(0,0,0,.3);border-radius:8px;padding:12px;font-size:12px;overflow-x:auto;white-space:pre-wrap;color:#a5b4fc">Create a token above to generate the config snippet.</pre>
-    </div >
-        `;
+    </div>
+  `;
 
   renderOAuthAppList(oauthClients || []);
   renderTokenList(pats);
@@ -1024,11 +1069,11 @@ async function renderMCPPanel(el) {
     const container = el.querySelector('#mcp-oauth-app-list');
     if (!list.length) {
       container.innerHTML = `
-        < div style = "color:var(--text-3);font-size:13px;padding:10px 0;display:flex;align-items:center;gap:8px" >
+        <div style="color:var(--text-3);font-size:13px;padding:10px 0;display:flex;align-items:center;gap:8px">
           <span style="font-size:18px">🔒</span>
-          No OAuth apps have been granted access yet.AI tools that support OAuth 2.0
+          No OAuth apps have been granted access yet. AI tools that support OAuth 2.0
           will appear here after they authorise.
-        </div > `;
+        </div>`;
       return;
     }
     container.innerHTML = '';
@@ -1041,7 +1086,7 @@ async function renderMCPPanel(el) {
 
       row.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)';
       row.innerHTML = `
-        < div style = "width:36px;height:36px;border-radius:8px;background:rgba(99,102,241,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px" >🤖</div >
+        <div style="width:36px;height:36px;border-radius:8px;background:rgba(99,102,241,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">🤖</div>
           <div style="flex:1;min-width:0">
             <div style="font-weight:600;font-size:14px${isFullyRevoked ? ';opacity:.45;text-decoration:line-through' : ''}">${window.escHtml(app.client_name)}</div>
             <div style="font-size:12px;color:var(--text-3);margin-top:3px">${scopePills}</div>
@@ -1058,9 +1103,9 @@ async function renderMCPPanel(el) {
     container.querySelectorAll('.mcp-revoke-app-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         const appName = btn.closest('[style]').querySelector('[style*="font-weight:600"]')?.textContent || 'this app';
-        if (!confirm(`Revoke all access for ${appName} ? The app will need to re - authorise.`)) return;
+        if (!confirm(`Revoke all access for ${appName}? The app will need to re-authorise.`)) return;
         btn.disabled = true; btn.textContent = 'Revoking…';
-        await window.api(`/ oauth / clients / ${btn.dataset.client}/tokens`, { method: 'DELETE' });
+        await window.api(`/oauth/clients/${btn.dataset.client}/tokens`, { method: 'DELETE' });
         const updated = await window.api('/oauth/clients');
         renderOAuthAppList(updated || []);
       });
@@ -1121,7 +1166,7 @@ async function renderMCPPanel(el) {
     if (!token) {
       pre.textContent = JSON.stringify({
         mcpServers: {
-          mailneo: {
+          neomail: {
             command: 'npx',
             args: ['-y', 'mcp-remote', mcpUrl],
             note: 'mcp-remote will trigger OAuth in your browser automatically'
@@ -1132,7 +1177,7 @@ async function renderMCPPanel(el) {
     }
     pre.textContent = JSON.stringify({
       mcpServers: {
-        mailneo: {
+        neomail: {
           command: 'npx',
           args: ['-y', 'mcp-remote', mcpUrl, '--header', `Authorization: Bearer ${token}`]
         }

@@ -191,9 +191,6 @@ router.patch('/:id', (req, res) => {
   const setClauses = Object.keys(updates).map(k => `${k} = ?`).join(', ');
   db.prepare(`UPDATE emails SET ${setClauses} WHERE id = ?`).run(...Object.values(updates), email.id);
 
-  // Keep folder column consistent so the email always has a visible home:
-  //  - archiving moves it to Archive on IMAP; track that in DB too
-  //  - unarchiving or untrashing must land back in INBOX, not become invisible
   if (updates.is_archived === 1) {
     db.prepare('UPDATE emails SET folder = ? WHERE id = ?').run('Archive', email.id);
   } else if (updates.is_archived === 0) {
