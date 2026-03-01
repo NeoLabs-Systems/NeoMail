@@ -48,7 +48,7 @@ function buildClient(account) {
     secure: account.imap_secure === 1,
     auth: { user: account.email, pass: password },
     logger: false,
-    tls: { rejectUnauthorized: false }
+    tls: { rejectUnauthorized: true }
   });
 }
 
@@ -86,7 +86,7 @@ async function syncFolder(account, folder = 'INBOX') {
       const range = isFirstSync ? '1:*' : `${maxUidRow.maxUid + 1}:*`;
       const fetchByUid = !isFirstSync;
 
-      console.log(`[IMAP] ${account.email} / ${folder}: total=${total}, maxUid=${maxUidRow?.maxUid ?? 'none'}, range=${range}`);
+      console.log(`[IMAP] account_id=${account.id} / ${folder}: total=${total}, maxUid=${maxUidRow?.maxUid ?? 'none'}, range=${range}`);
 
       const msgs = await client.fetch(range, {
         uid: true,

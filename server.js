@@ -50,7 +50,8 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 if (!process.env.SESSION_SECRET) {
-  console.warn('[WARN] SESSION_SECRET not set – using insecure default. Run: node scripts/setup.js');
+  console.error('[FATAL] SESSION_SECRET is not set. Run: node scripts/setup.js');
+  process.exit(1);
 }
 
 const sessionStore = new SQLiteStore({
@@ -61,7 +62,7 @@ const sessionStore = new SQLiteStore({
 
 app.use(session({
   name: 'mailneo.sid',
-  secret: process.env.SESSION_SECRET || 'insecure-default-please-change',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   store: sessionStore,

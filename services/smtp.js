@@ -14,7 +14,7 @@ function createTransport(account) {
     secure,
     requireTLS: !secure,
     auth: { user: account.email, pass: password },
-    tls: { rejectUnauthorized: false, minVersion: 'TLSv1' }
+    tls: { rejectUnauthorized: true }
   });
 }
 
