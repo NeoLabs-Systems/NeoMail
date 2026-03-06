@@ -944,7 +944,7 @@ async function renderMCPPanel(el) {
       <!-- Endpoint info -->
       <div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.25);border-radius:10px;padding:12px 14px;margin-bottom:22px;font-size:13px;line-height:1.9">
         <div><strong>MCP Endpoint:</strong>&nbsp;
-          <code style="background:rgba(0,0,0,.25);padding:2px 7px;border-radius:5px;user-select:all">${window.escHtml(base + '/mcp')}</code>
+          <code style="background:rgba(0,0,0,.25);padding:2px 7px;border-radius:5px;user-select:all">${window.escHtml(base + '/mcp/sse')}</code>
         </div>
         <div><strong>OAuth Metadata:</strong>&nbsp;
           <code style="background:rgba(0,0,0,.25);padding:2px 7px;border-radius:5px;user-select:all">${window.escHtml(base + '/.well-known/oauth-authorization-server')}</code>
@@ -1162,7 +1162,7 @@ async function renderMCPPanel(el) {
 
   function updateSnippet(token) {
     const pre = el.querySelector('#mcp-claude-snippet');
-    const mcpUrl = base + '/mcp';
+    const mcpUrl = base + '/mcp/sse';
     if (!token) {
       pre.textContent = JSON.stringify({
         mcpServers: {

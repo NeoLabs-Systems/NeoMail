@@ -19,11 +19,17 @@
  */
 
 const express = require('express');
+const { randomUUID } = require('crypto');
 const { db }  = require('../db/database');
 const { requireMcpAuth } = require('../middleware/mcpAuth');
 const { sendEmail } = require('../services/smtp');
 
 const router = express.Router();
+
+// ── SSE Session State ─────────────────────────────────────────────────────────
+
+// Map of sessionId -> { res, userId, scopes }
+const activeSessions = new Map();
 
 // ── Tool definitions (MCP schema) ─────────────────────────────────────────────
 
@@ -302,32 +308,85 @@ function handleTrashEmail(userId, args) {
 
 // ── MCP request dispatcher ────────────────────────────────────────────────────
 
-router.post('/', requireMcpAuth(), express.json({ limit: '4mb' }), async (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Cache-Control', 'no-store');
+// GET /sse – initiate SSE connection
+router.get('/sse', requireMcpAuth(), (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache, no-store');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const sessionId = randomUUID();
+  
+  // Store session
+  activeSessions.set(sessionId, {
+    res,
+    userId: req.mcpUserId,
+    scopes: req.mcpScopes,
+  });
+
+  // Handle client disconnect
+  req.on('close', () => {
+    activeSessions.delete(sessionId);
+  });
+
+  // Send the initial endpoint event telling the client where to POST messages
+  const messageEndpoint = `/mcp/message?sessionId=${encodeURIComponent(sessionId)}`;
+  res.write(`event: endpoint\ndata: ${messageEndpoint}\n\n`);
+});
+
+// POST /message – handle incoming JSON-RPC messages from the client
+router.post('/message', express.json({ limit: '4mb' }), async (req, res) => {
+  const sessionId = req.query.sessionId;
+  if (!sessionId) {
+    return res.status(400).send('Missing sessionId');
+  }
+
+  const session = activeSessions.get(sessionId);
+  if (!session) {
+    return res.status(404).send('Session not found or expired');
+  }
+
+  // The client sends the token in the SSE request, but might not send it in the POST request.
+  // We already tied this session to a userId and scopes.
+  
+  // Acknowledge receipt immediately (SSE transport requirement)
+  res.status(202).end();
 
   const body = req.body;
+
+  // Provide a mock req object to callTool/dispatch with the correct session rights
+  const mockReq = { 
+    mcpUserId: session.userId, 
+    mcpScopes: session.scopes 
+  };
 
   // Batch requests — cap at 20 to prevent DoS
   if (Array.isArray(body)) {
     if (body.length > 20) {
-      return res.status(400).json({ jsonrpc: '2.0', id: null, error: { code: -32600, message: 'Batch size exceeds limit of 20' } });
+      const errRes = { jsonrpc: '2.0', id: null, error: { code: -32600, message: 'Batch size exceeds limit of 20' } };
+      session.res.write(`event: message\ndata: ${JSON.stringify(errRes)}\n\n`);
+      return;
     }
-    const results = await Promise.all(body.map(msg => dispatch(req, msg)));
-    return res.json(results.filter(r => r !== null));
+    const results = await Promise.all(body.map(msg => dispatch(mockReq, msg)));
+    const validResults = results.filter(r => r !== null);
+    if (validResults.length > 0) {
+      session.res.write(`event: message\ndata: ${JSON.stringify(validResults)}\n\n`);
+    }
+    return;
   }
 
-  const result = await dispatch(req, body);
-  if (result === null) return res.status(204).end(); // notification
-  return res.json(result);
+  const result = await dispatch(mockReq, body);
+  if (result !== null) {
+    session.res.write(`event: message\ndata: ${JSON.stringify(result)}\n\n`);
+  }
 });
 
-// GET /mcp – return capability info (useful for health probes)
+// GET / – return capability info (useful for health probes)
 router.get('/', (req, res) => {
   res.json({
     name:       'NeoMail MCP Server',
     version:    '1.0.0',
-    transport:  'streamable-http',
+    transport:  'sse',
     auth:       'Bearer (OAuth 2.0)',
     tools:      TOOLS.map(t => ({ name: t.name, description: t.description })),
   });
