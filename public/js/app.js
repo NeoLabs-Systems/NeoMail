@@ -58,7 +58,7 @@ function getInitials(name, email) {
 }
 
 function getAvatarColor(str) {
-  const colors = ['#6366f1','#8b5cf6','#06b6d4','#22c55e','#f59e0b','#ef4444','#ec4899','#14b8a6'];
+  const colors = ['#6366f1', '#8b5cf6', '#06b6d4', '#22c55e', '#f59e0b', '#ef4444', '#ec4899', '#14b8a6'];
   let h = 0;
   for (const c of (str || '')) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
   return colors[Math.abs(h) % colors.length];
@@ -78,7 +78,7 @@ async function api(path, opts = {}) {
 async function init() {
   // Register service worker (push notifications only)
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.register('/sw.js').catch(() => { });
   }
 
   // Request notification permission immediately
@@ -120,12 +120,12 @@ async function init() {
 
   // Mobile sidebar hamburger
   const hamburger = document.getElementById('btn-hamburger');
-  const sidebar   = document.getElementById('sidebar');
-  const backdrop  = document.getElementById('sidebar-backdrop');
-  function openSidebar()  { sidebar.classList.add('mobile-open'); backdrop.classList.add('visible'); }
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  function openSidebar() { sidebar.classList.add('mobile-open'); backdrop.classList.add('visible'); }
   function closeSidebar() { sidebar.classList.remove('mobile-open'); backdrop.classList.remove('visible'); }
   if (hamburger) hamburger.addEventListener('click', openSidebar);
-  if (backdrop)  backdrop.addEventListener('click', closeSidebar);
+  if (backdrop) backdrop.addEventListener('click', closeSidebar);
   // Close sidebar when a nav item is tapped
   document.getElementById('sidebar-nav').addEventListener('click', closeSidebar);
   document.getElementById('labels-nav').addEventListener('click', closeSidebar);
@@ -361,7 +361,7 @@ function buildThreadRow(key, msgs) {
       badge.textContent = msgs.length;
       dateEl.before(badge);
     }
-    const senders = [...new Set(msgs.map(e => e.from_name?.split(' ')[0] || e.from_email.split('@')[0]))].slice(0,3);
+    const senders = [...new Set(msgs.map(e => e.from_name?.split(' ')[0] || e.from_email.split('@')[0]))].slice(0, 3);
     const fromEl = row.querySelector('.row-from');
     if (fromEl) fromEl.textContent = senders.join(', ');
 
@@ -436,7 +436,7 @@ function buildEmailRow(email) {
         <span class="row-date">${formatDate(email.date)}</span>
       </div>
       <div class="row-subject">${escHtml(email.subject || '(no subject)')}</div>
-      ${State.settings.show_preview !== false && email.body_text ? `<div class="row-preview">${escHtml((email.body_text || '').replace(/\s+/g,' ').trim().slice(0,120))}</div>` : ''}
+      ${State.settings.show_preview !== false && email.body_text ? `<div class="row-preview">${escHtml((email.body_text || '').replace(/\s+/g, ' ').trim().slice(0, 120))}</div>` : ''}
       ${badgesHtml ? `<div class="row-badges">${badgesHtml}</div>` : ''}
     </div>
     ${otpCode ? `<button class="otp-copy-btn" data-code="${escHtml(otpCode)}" title="Copy code &amp; archive">
@@ -572,7 +572,7 @@ function getLabelColor(labelName) {
 }
 
 function escHtml(str) {
-  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 /* Parse search operators: from: subject: has:attachment after: before: */
@@ -580,17 +580,17 @@ function parseSearchQuery(raw) {
   const params = {};
   let remaining = String(raw || '');
   const ops = [
-    { re: /from:(\S+)/i,             key: 'from' },
-    { re: /subject:([^\s]+)/i,       key: 'subject' },
-    { re: /has:attachment/i,         key: 'has_attachment', val: '1' },
-    { re: /after:(\d{4}-\d{2}-\d{2})/i,  key: 'after' },
+    { re: /from:(\S+)/i, key: 'from' },
+    { re: /subject:([^\s]+)/i, key: 'subject' },
+    { re: /has:attachment/i, key: 'has_attachment', val: '1' },
+    { re: /after:(\d{4}-\d{2}-\d{2})/i, key: 'after' },
     { re: /before:(\d{4}-\d{2}-\d{2})/i, key: 'before' },
   ];
   for (const op of ops) {
     const m = remaining.match(op.re);
     if (m) {
       params[op.key] = op.val !== undefined ? op.val : m[1];
-      remaining = remaining.replace(m[0], '').replace(/\s+/g,' ').trim();
+      remaining = remaining.replace(m[0], '').replace(/\s+/g, ' ').trim();
     }
   }
   if (remaining) params.search = remaining;
@@ -726,7 +726,7 @@ async function openEmail(email) {
       .replace(/<(table)\b([^>]*?)(\s+cellpadding\s*=\s*["']?\d+["']?)/gi, '<$1$2')
       .replace(/<(table)\b([^>]*?)(\s+cellspacing\s*=\s*["']?\d+["']?)/gi, '<$1$2');
   }
-  const bodyHtml = rawHtml || `<pre style="font-family:inherit;white-space:pre-wrap;padding:20px">${(data.body_text || '').replace(/</g,'&lt;')}</pre>`;
+  const bodyHtml = rawHtml || `<pre style="font-family:inherit;white-space:pre-wrap;padding:20px">${(data.body_text || '').replace(/</g, '&lt;')}</pre>`;
   const iframeDoc = `<!DOCTYPE html><html><head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
@@ -762,9 +762,9 @@ async function openEmail(email) {
     const t = setInterval(() => {
       try {
         const h = iframe.contentDocument?.documentElement?.scrollHeight
-               || iframe.contentDocument?.body?.scrollHeight || 400;
+          || iframe.contentDocument?.body?.scrollHeight || 400;
         if (Math.abs(h - prev) > 4) { iframe.style.height = (h + 40) + 'px'; prev = h; }
-      } catch (_) {}
+      } catch (_) { }
       if (++ticks > 20) clearInterval(t);
     }, 200);
 
@@ -779,12 +779,12 @@ async function openEmail(email) {
         try {
           const u = new URL(href);
           external = u.protocol === 'http:' || u.protocol === 'https:';
-        } catch (_) {}
+        } catch (_) { }
         if (!external) return;
         e.preventDefault();
         showLinkConfirm(href);
       });
-    } catch (_) {}
+    } catch (_) { }
   };
 
   // Attachments — click opens preview for images/PDFs, downloads the rest
@@ -1107,16 +1107,16 @@ document.getElementById('check-all').addEventListener('change', (e) => {
 });
 
 function updateBulkBar() {
-  const bar    = document.getElementById('bulk-actions');
-  const count  = document.getElementById('sel-count');
+  const bar = document.getElementById('bulk-actions');
+  const count = document.getElementById('sel-count');
   const search = document.querySelector('.search-wrap');
-  const sync   = document.getElementById('btn-sync');
+  const sync = document.getElementById('btn-sync');
   const active = State.selectedIds.size > 0;
-  bar.style.display   = active ? 'flex' : 'none';
+  bar.style.display = active ? 'flex' : 'none';
   count.style.display = active ? 'inline-flex' : 'none';
-  count.textContent   = `${State.selectedIds.size} selected`;
+  count.textContent = `${State.selectedIds.size} selected`;
   if (search) search.style.display = active ? 'none' : '';
-  if (sync)   sync.style.display   = active ? 'none' : '';
+  if (sync) sync.style.display = active ? 'none' : '';
 }
 
 /* ── Bulk Actions ────────────────────────────────── */
@@ -1177,10 +1177,8 @@ document.getElementById('load-more').addEventListener('click', () => {
 async function updateStats() {
   const stats = await api('/api/emails/stats/summary');
   if (!stats) return;
-  setBadge('badge-inbox', stats.unread);
   setBadge('badge-starred', stats.starred);
   setBadge('badge-awaiting', stats.awaiting);
-  // Update browser tab title
   document.title = stats.unread > 0 ? `(${stats.unread}) NeoMail` : 'NeoMail';
 }
 
@@ -1231,10 +1229,10 @@ function setupSSE() {
         const notifTitle = data.count === 1 && data.from
           ? `New mail from ${data.from}`
           : `${data.count} new email(s)`;
-        const notifBody  = data.subject || 'You have new mail in NeoMail';
+        const notifBody = data.subject || 'You have new mail in NeoMail';
         showNativeNotification(notifTitle, notifBody, 'mailneo-mail');
       }
-    } catch (_) {}
+    } catch (_) { }
   };
   es.onerror = () => { /* retry is automatic */ };
 }
@@ -1258,7 +1256,7 @@ document.getElementById('btn-add-account').addEventListener('click', () => {
 /* ── Keyboard Shortcuts ──────────────────────────── */
 document.addEventListener('keydown', async (e) => {
   // Ignore when typing in inputs/textareas/contenteditable
-  if (['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
   if (e.target.isContentEditable) return;
   // Ignore modifier-key combos (Cmd+C, Ctrl+C, Alt+…, etc.)
   if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -1346,16 +1344,16 @@ document.addEventListener('keydown', async (e) => {
     }
     const now = Date.now();
     const presets = [
-      { label: 'In 1 hour',    ts: now + 3600_000 },
-      { label: 'Later today',  ts: setHours(now, 18) },
-      { label: 'Tomorrow',     ts: setHours(now + 86400_000, 9) },
+      { label: 'In 1 hour', ts: now + 3600_000 },
+      { label: 'Later today', ts: setHours(now, 18) },
+      { label: 'Tomorrow', ts: setHours(now + 86400_000, 9) },
       { label: 'This weekend', ts: nextWeekday(now, 6, 10) },
-      { label: 'Next week',    ts: nextWeekday(now, 1, 9) },
+      { label: 'Next week', ts: nextWeekday(now, 1, 9) },
     ];
     opts.innerHTML = presets.map(p => `
-      <div class="snooze-opt" data-ts="${Math.floor(p.ts/1000)}">
+      <div class="snooze-opt" data-ts="${Math.floor(p.ts / 1000)}">
         <span class="snooze-opt-label">${p.label}</span>
-        <span class="snooze-opt-time">${new Date(p.ts).toLocaleString(undefined, {weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span>
+        <span class="snooze-opt-time">${new Date(p.ts).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
       </div>
     `).join('');
     // Set default custom value to tomorrow morning
@@ -1487,7 +1485,7 @@ function showLinkConfirm(url) {
   document.getElementById('link-confirm-url').textContent = url;
   overlay.style.display = 'flex';
 
-  const open   = document.getElementById('link-confirm-open');
+  const open = document.getElementById('link-confirm-open');
   const cancel = document.getElementById('link-confirm-cancel');
 
   const close = () => { overlay.style.display = 'none'; };

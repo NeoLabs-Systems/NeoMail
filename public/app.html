@@ -348,8 +348,13 @@
       <button class="compose-tb-btn" data-cmd="insertOrderedList" title="Numbered list">⒈</button>
       <div class="tb-sep"></div>
       <button class="compose-tb-btn" data-cmd="createLink" title="Insert link">🔗</button>      <div class="tb-sep"></div>
-      <button class="compose-tb-btn" id="btn-toggle-bcc" title="Toggle Bcc" style="font-size:11px;width:auto;padding:0 8px">Bcc</button>    </div>
+      <button class="compose-tb-btn" id="btn-toggle-bcc" title="Toggle Bcc" style="font-size:11px;width:auto;padding:0 8px">Bcc</button>
+      <button class="compose-tb-btn" id="btn-attach" title="Attach file" style="width:auto;padding:0 8px">📎 Attach</button>
+      <input type="file" id="compose-file-input" multiple style="display:none">
+    </div>
     <div id="compose-body" class="compose-body" contenteditable="true" data-placeholder="Write your message…"></div>
+
+    <div id="compose-attachments" style="display:none"></div>
 
     <!-- AI Compose panel -->
     <div class="ai-compose-panel" id="ai-compose-panel" style="display:none">

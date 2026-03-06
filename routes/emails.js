@@ -98,12 +98,12 @@ router.get('/', (req, res) => {
     sql += ' AND (e.subject LIKE ? OR e.from_email LIKE ? OR e.from_name LIKE ? OR e.body_text LIKE ?)';
     params.push(q, q, q, q);
   }
-  if (from)      { sql += ' AND e.from_email LIKE ?'; params.push(`%${String(from).slice(0,200)}%`); }
-  if (subjectQ)  { sql += ' AND e.subject LIKE ?';    params.push(`%${String(subjectQ).slice(0,200)}%`); }
+  if (from) { sql += ' AND e.from_email LIKE ?'; params.push(`%${String(from).slice(0, 200)}%`); }
+  if (subjectQ) { sql += ' AND e.subject LIKE ?'; params.push(`%${String(subjectQ).slice(0, 200)}%`); }
   if (has_attachment === '1') {
     sql += ' AND EXISTS (SELECT 1 FROM email_attachments ea WHERE ea.email_id = e.id)';
   }
-  if (after)  { const ts = Math.floor(new Date(after).getTime()  / 1000); if (!isNaN(ts)) { sql += ' AND e.date >= ?'; params.push(ts); } }
+  if (after) { const ts = Math.floor(new Date(after).getTime() / 1000); if (!isNaN(ts)) { sql += ' AND e.date >= ?'; params.push(ts); } }
   if (before) { const ts = Math.floor(new Date(before).getTime() / 1000); if (!isNaN(ts)) { sql += ' AND e.date <= ?'; params.push(ts); } }
 
   const safeLimit = Math.min(Number(limit) || 50, 500);
@@ -183,7 +183,7 @@ router.patch('/:id', (req, res) => {
   for (const key of allowed) {
     if (req.body[key] !== undefined) updates[key] = req.body[key];
   }
-  if (updates.ai_label !== undefined)   updates.ai_label   = String(updates.ai_label).slice(0, 100);
+  if (updates.ai_label !== undefined) updates.ai_label = String(updates.ai_label).slice(0, 100);
   if (updates.ai_summary !== undefined) updates.ai_summary = String(updates.ai_summary).slice(0, 1000);
 
   if (Object.keys(updates).length === 0) return res.json({ ok: true });
@@ -253,7 +253,8 @@ router.post('/bulk', (req, res) => {
 
 router.post('/send', async (req, res) => {
   const { account_id, to, cc, bcc, subject, text, html, replyTo, inReplyTo, references, attachments } = req.body;
-  if (!account_id || !to || !subject) {    return res.status(400).json({ error: 'account_id, to, subject required' });
+  if (!account_id || !to || !subject) {
+    return res.status(400).json({ error: 'account_id, to, subject required' });
   }
   if (String(subject).length > 1000 || String(to).length > 2000) {
     return res.status(400).json({ error: 'subject or to field too long' });
@@ -307,15 +308,15 @@ router.get('/:id/attachment/:attId', (req, res) => {
     'application/msword', 'application/vnd.ms-excel',
   ]);
   const isCalendar = /text\/calendar|application\/(ics|x-vcalendar)/i.test(att.content_type || '')
-                  || /\.(ics|ical|vcs)$/i.test(safeFilename);
+    || /\.(ics|ical|vcs)$/i.test(safeFilename);
   const contentType = SAFE_TYPES.has(att.content_type) ? att.content_type
     : isCalendar ? 'text/calendar'
-    : 'application/octet-stream';
+      : 'application/octet-stream';
   res.setHeader('Content-Type', contentType);
   // ICS served inline so JS fetch() can read it; others as download
   res.setHeader('Content-Disposition',
     isCalendar ? `inline; filename="${safeFilename}"`
-               : `attachment; filename="${safeFilename}"`);
+      : `attachment; filename="${safeFilename}"`);
   res.send(att.data);
 });
 
@@ -411,7 +412,7 @@ router.post('/:id/spam', async (req, res) => {
     try {
       const special = await getSpecialFolders(account);
       spamFolder = special.spam || 'Spam';
-    } catch (_) {}
+    } catch (_) { }
     if (email.uid) {
       try { await moveEmail(account, email.folder, email.uid, spamFolder); } catch (err) { console.error('[SPAM]', err.message); }
     }
@@ -443,7 +444,7 @@ router.post('/archive-all', (req, res) => {
 router.get('/stats/summary', (req, res) => {
   const userId = req.session.userId;
   const stats = {
-    unread: db.prepare(`SELECT COUNT(*) as c FROM emails e JOIN accounts a ON a.id=e.account_id WHERE a.user_id=? AND e.is_read=0 AND e.is_trash=0 AND e.is_archived=0 AND (e.snoozed_until IS NULL OR e.snoozed_until <= unixepoch())`).get(userId)?.c || 0,
+    unread: db.prepare(`SELECT COUNT(*) as c FROM emails e JOIN accounts a ON a.id=e.account_id WHERE a.user_id=? AND e.is_read=0 AND e.is_sent=0 AND e.is_trash=0 AND e.is_archived=0 AND (e.snoozed_until IS NULL OR e.snoozed_until <= unixepoch())`).get(userId)?.c || 0,
     starred: db.prepare(`SELECT COUNT(*) as c FROM emails e JOIN accounts a ON a.id=e.account_id WHERE a.user_id=? AND e.is_starred=1 AND e.is_trash=0`).get(userId)?.c || 0,
     awaiting: db.prepare(`SELECT COUNT(*) as c FROM emails e JOIN accounts a ON a.id=e.account_id WHERE a.user_id=? AND e.awaiting_reply=1 AND e.is_trash=0`).get(userId)?.c || 0,
     total: db.prepare(`SELECT COUNT(*) as c FROM emails e JOIN accounts a ON a.id=e.account_id WHERE a.user_id=? AND e.is_trash=0`).get(userId)?.c || 0,

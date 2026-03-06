@@ -5,7 +5,8 @@
 let composeData = {};
 let sigEnabled = true;
 let draftTimer = null;
-let composeDirty = false; // true once user makes any edit in the current compose session
+let composeDirty = false;
+let composeAttachments = [];
 
 /* ── Draft helpers ────────────────────────────────── */
 const DRAFT_KEY = 'mailneo_draft';
@@ -14,20 +15,20 @@ function saveDraft() {
   if (!composeDirty) return; // don't overwrite a saved draft before the user has typed anything
   try {
     const draft = {
-      to:        document.getElementById('compose-to').value,
-      cc:        document.getElementById('compose-cc').value,
-      bcc:       document.getElementById('compose-bcc').value,
-      subject:   document.getElementById('compose-subject').value,
-      bodyHtml:  document.getElementById('compose-body').innerHTML,
+      to: document.getElementById('compose-to').value,
+      cc: document.getElementById('compose-cc').value,
+      bcc: document.getElementById('compose-bcc').value,
+      subject: document.getElementById('compose-subject').value,
+      bodyHtml: document.getElementById('compose-body').innerHTML,
       originalBody: composeData.originalBody || null,
-      savedAt:   Date.now(),
+      savedAt: Date.now(),
     };
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-  } catch (_) {}
+  } catch (_) { }
 }
 
 function clearDraft() {
-  try { localStorage.removeItem(DRAFT_KEY); } catch (_) {}
+  try { localStorage.removeItem(DRAFT_KEY); } catch (_) { }
 }
 
 function startDraftTimer() {
@@ -80,7 +81,7 @@ function setupAutocomplete(inputEl) {
       }
       inputEl.parentNode.style.position = 'relative';
       inputEl.after(dropdown);
-    } catch (_) {}
+    } catch (_) { }
   });
 
   inputEl.addEventListener('blur', () => setTimeout(removeDropdown, 200));
@@ -100,13 +101,13 @@ function getSigHtml() {
   const text = s?.signature || '';
   if (!text || !sigEnabled) return '';
 
-  const italic  = s?.sig_style === 'italic' ? 'font-style:italic;' : '';
-  const sizes   = { small: '11px', large: '15px' };
-  const size    = sizes[s?.sig_size] || '13px';
-  const color   = s?.sig_color || '#888888';
-  const sep     = s?.sig_separator || 'dashes';
+  const italic = s?.sig_style === 'italic' ? 'font-style:italic;' : '';
+  const sizes = { small: '11px', large: '15px' };
+  const size = sizes[s?.sig_size] || '13px';
+  const color = s?.sig_color || '#888888';
+  const sep = s?.sig_separator || 'dashes';
 
-  const safeText = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  const safeText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
   let sepHtml = '';
   if (sep === 'hr') {
     sepHtml = '<hr style="border:none;border-top:1px solid #d0d0da;margin:10px 0">';
@@ -121,7 +122,7 @@ function rebuildBody() {
   const body = document.getElementById('compose-body');
   const sigHtml = getSigHtml();
   if (composeData.originalBody) {
-    body.innerHTML = `${sigHtml}<br><br><hr style="border-color:#ffffff10;margin:12px 0"><div style="color:#888">${composeData.originalBody.replace(/\n/g,'<br>')}</div>`;
+    body.innerHTML = `${sigHtml}<br><br><hr style="border-color:#ffffff10;margin:12px 0"><div style="color:#888">${composeData.originalBody.replace(/\n/g, '<br>')}</div>`;
   } else {
     body.innerHTML = sigHtml;
   }
@@ -134,7 +135,7 @@ function rebuildBody() {
     const sel = window.getSelection();
     sel.removeAllRanges();
     sel.addRange(range);
-  } catch (_) {}
+  } catch (_) { }
 }
 
 function updateSigBtn() {
@@ -156,6 +157,8 @@ function openCompose(opts = {}) {
   }
   composeData = opts;
   sigEnabled = true;
+  composeAttachments = [];
+  renderAttachmentChips();
   modal.style.display = 'flex';
   modal.style.flexDirection = 'column';
 
@@ -179,7 +182,7 @@ function openCompose(opts = {}) {
       const sel = window.getSelection();
       sel.selectAllChildren(bodyEl);
       sel.collapseToStart();
-    } catch (_) {}
+    } catch (_) { }
     document.execCommand('insertText', false, opts.prefillBody);
   }
   updateSigBtn();
@@ -212,12 +215,12 @@ function openCompose(opts = {}) {
           };
         }
       }
-    } catch (_) {}
+    } catch (_) { }
   }
 
   // Mark dirty on any user interaction with compose fields
   const markDirty = () => { composeDirty = true; };
-  ['compose-to','compose-cc','compose-bcc','compose-subject'].forEach(id => {
+  ['compose-to', 'compose-cc', 'compose-bcc', 'compose-subject'].forEach(id => {
     document.getElementById(id)?.addEventListener('input', markDirty, { once: true });
   });
   document.getElementById('compose-body')?.addEventListener('input', markDirty, { once: true });
@@ -336,12 +339,12 @@ let undoCancelled = false;
 
 function collectSendPayload() {
   const accountId = document.getElementById('compose-from').value;
-  const to      = document.getElementById('compose-to').value.trim();
-  const cc      = document.getElementById('compose-cc').value.trim();
-  const bcc     = document.getElementById('compose-bcc').value.trim();
+  const to = document.getElementById('compose-to').value.trim();
+  const cc = document.getElementById('compose-cc').value.trim();
+  const bcc = document.getElementById('compose-bcc').value.trim();
   const subject = document.getElementById('compose-subject').value.trim();
-  const body    = document.getElementById('compose-body');
-  return { accountId, to, cc, bcc, subject, html: body.innerHTML, text: body.innerText };
+  const body = document.getElementById('compose-body');
+  return { accountId, to, cc, bcc, subject, html: body.innerHTML, text: body.innerText, attachments: composeAttachments.slice() };
 }
 
 async function actualSend(payload) {
@@ -352,7 +355,8 @@ async function actualSend(payload) {
       to: payload.to, cc: payload.cc || undefined, bcc: payload.bcc || undefined,
       subject: payload.subject, text: payload.text, html: payload.html,
       inReplyTo: composeData.inReplyTo || undefined,
-      references: composeData.inReplyTo || undefined
+      references: composeData.inReplyTo || undefined,
+      attachments: payload.attachments?.length ? payload.attachments : undefined,
     }
   });
   return res;
@@ -410,7 +414,7 @@ document.getElementById('btn-send').addEventListener('click', async () => {
 
 // Send Later
 document.getElementById('btn-send-later')?.addEventListener('click', () => {
-  const to      = document.getElementById('compose-to').value.trim();
+  const to = document.getElementById('compose-to').value.trim();
   const subject = document.getElementById('compose-subject').value.trim();
   if (!to) { window.toast('Recipient required', 'error'); return; }
   if (!subject) { window.toast('Subject required', 'error'); return; }
@@ -461,12 +465,38 @@ document.getElementById('btn-schedule-confirm')?.addEventListener('click', async
 
 // Set up autocomplete on To / CC / BCC after DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  const toEl  = document.getElementById('compose-to');
-  const ccEl  = document.getElementById('compose-cc');
+  const toEl = document.getElementById('compose-to');
+  const ccEl = document.getElementById('compose-cc');
   const bccEl = document.getElementById('compose-bcc');
-  if (toEl)  setupAutocomplete(toEl);
-  if (ccEl)  setupAutocomplete(ccEl);
+  if (toEl) setupAutocomplete(toEl);
+  if (ccEl) setupAutocomplete(ccEl);
   if (bccEl) setupAutocomplete(bccEl);
+
+  // File attachment button
+  const attachBtn = document.getElementById('btn-attach');
+  const fileInput = document.getElementById('compose-file-input');
+  if (attachBtn && fileInput) {
+    attachBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => {
+      const files = Array.from(fileInput.files || []);
+      fileInput.value = '';
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const dataUrl = ev.target.result;
+          const base64 = dataUrl.split(',')[1];
+          composeAttachments.push({
+            filename: file.name,
+            content: base64,
+            contentType: file.type || 'application/octet-stream',
+            encoding: 'base64',
+          });
+          renderAttachmentChips();
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+  }
 
   // Draft restore banner (inject if not in HTML)
   const modal = document.getElementById('compose-modal');
@@ -485,6 +515,23 @@ document.addEventListener('DOMContentLoaded', () => {
     else modal.prepend(banner);
   }
 });
+
+function renderAttachmentChips() {
+  const container = document.getElementById('compose-attachments');
+  if (!container) return;
+  container.style.display = composeAttachments.length ? 'flex' : 'none';
+  container.innerHTML = '';
+  composeAttachments.forEach((att, idx) => {
+    const chip = document.createElement('div');
+    chip.className = 'compose-att-chip';
+    chip.innerHTML = `📎 <span title="${att.filename}">${att.filename}</span><button class="att-remove" data-idx="${idx}" title="Remove">✕</button>`;
+    chip.querySelector('.att-remove').addEventListener('click', () => {
+      composeAttachments.splice(idx, 1);
+      renderAttachmentChips();
+    });
+    container.appendChild(chip);
+  });
+}
 
 window.openCompose = openCompose;
 window.populateComposeFrom = populateComposeFrom;

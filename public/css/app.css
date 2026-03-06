@@ -816,6 +816,44 @@ body { display: flex; height: 100dvh; }
 .btn-ai-generate:hover { background: #4f46e5; }
 .btn-ai-generate:disabled { opacity: .6; cursor: not-allowed; }
 
+#compose-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.compose-att-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border-mid);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--text-2);
+  max-width: 220px;
+}
+.compose-att-chip span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.compose-att-chip .att-remove {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--text-3);
+  cursor: pointer;
+  padding: 0 0 0 2px;
+  font-size: 13px;
+  line-height: 1;
+  transition: color var(--transition);
+}
+.compose-att-chip .att-remove:hover { color: var(--red); }
+
 .compose-footer {
   display: flex;
   align-items: center;
